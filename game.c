@@ -4,6 +4,7 @@
 
 #define PLAYER1 'X'
 #define PLAYER2 'O'
+#define ISBLACK(i, j) ((i % 2 == 0 && j % 2 == 0) || (i % 2 != 0 && j % 2 != 0))
 
 int menu(void);
 void playerVs_player(void);
@@ -67,30 +68,40 @@ void resetBoard(void)
 {
     int i, j;
 
-    //reset the board array
-    for(j = 0; j < 8; j++)
+    //i and j are with +1 because is more easy to determinate if it is black
+    //the black spaces are in houses with i and j equal to an odd num or an even num
+    for(i = 8; i > 0; i--)
     {
-        for(i = 0; i < 8; i++)
-            board[i][j] = ' ';
+        for(j = 1; j < 9; j++)
+        {
+            if(i > 5 && ISBLACK(i, j))
+                board[i-1][j-1] = PLAYER2;
+            else if(i < 4 && ISBLACK(i, j))
+                 board[i-1][j-1] = PLAYER1;
+            else
+                board[i-1][j-1] = ' ';
+        }
     }
 }
 
 //prints the board in screen with the line and rows counter
 void printsBoard(void)
 {
-    int rowCounter = 8, lineCounter = 1,
-    i, j;
+    int 
+    rowCounter = 8, columnCounter,
+    rows, columns;
 
-    for(j = 7; j >= 0; j--)
+    for(rows = 7; rows >= 0; rows--)
     {
-        printf("\n\t\t\t  +---+---+---+---+---+---+---+---+\n\t\t\t");
-        printf("%d ", rowCounter--);
+        printf("\n\t\t\t\t  +---+---+---+---+---+---+---+---+\n\t\t\t\t");
 
-        for(i = 7; i >= 0; i--) printf("| %c ", board[i][j]);
+        printf("%d ", rowCounter--); //shows the numbers next to the board
+        for(columns = 0; columns < 8; columns++) 
+            printf("| %c ", board[rows][columns]);
 
         printf("|");
     }
 
-    printf("\n\t\t\t  +---+---+---+---+---+---+---+---+\n\t\t\t ");
-    for(lineCounter = 1; lineCounter < 9; lineCounter++) printf("   %d", lineCounter);
+    printf("\n\t\t\t\t  +---+---+---+---+---+---+---+---+");
+    printf("\n\t\t\t\t    A   B   C   D   E   F   G   H  ");
 }
