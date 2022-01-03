@@ -87,9 +87,7 @@ void resetBoard(void)
 //prints the board in screen with the line and rows counter
 void printsBoard(void)
 {
-    int 
-    rowCounter = 8, columnCounter,
-    rows, columns;
+    int rowCounter = 8, rows, columns;
 
     for(rows = 7; rows >= 0; rows--)
     {
