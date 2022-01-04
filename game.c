@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <conio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define PLAYER1 'X'
 #define PLAYER2 'O'
@@ -11,6 +12,11 @@ void playerVs_player(void);
 
 void resetBoard(void);
 void printsBoard(void);
+int isA_validPiece(char input[], char playerSymbol); 
+int isA_validMove(char input[], char playerSymbol);
+int isVictory(char winnerSymbol);
+
+int isA_validInput(char input[]);
 
 char board[8][8] = {'\0'};
 
@@ -58,9 +64,51 @@ int menu(void)
 
 void playerVs_player(void)
 {
-    system("cls");
+    char input[1024] = {'\0'};
+
     resetBoard();
-    printsBoard();
+
+    do
+    {
+        do 
+        {
+            system("cls");
+            printsBoard();
+
+            printf("\n\nSelect a Piece: ");
+            fgets(input, 1024, stdin);
+
+            if(isA_validPiece(input, 'X') == 0)
+            {
+                printf("\nInvalid Input!");
+                getch();
+            }
+            else 
+                break;
+        }
+        while(1);
+        /*
+        do 
+        {
+            system("cls");
+            printsBoard();
+
+            printf("\n\nSelect the Piece: ");
+            fgets(input, 1024, stdin);
+
+            if(isA_validPiece(input, 'X') == 0)
+            {
+
+            }
+            else 
+                break;
+        }
+        while(1);
+        */
+    }
+    while(isVictory('X') == 0);
+
+    printf("\nEND GAME!");
 }
 
 //resets the board if the correct pieces
@@ -102,4 +150,45 @@ void printsBoard(void)
 
     printf("\n\t\t\t\t  +---+---+---+---+---+---+---+---+");
     printf("\n\t\t\t\t    A   B   C   D   E   F   G   H  ");
+}
+
+//Checks if it's a valid player piece
+int isA_validPiece(char input[], char playerSymbol)
+{
+    input[strlen(input) - 1] = '\0'; 
+    strupr(input);
+    //remove \n in last char and puts in upper case
+
+    if(isA_validInput(input) == 0) return 0;
+
+    if(board[(input[1] - '0') - 1][input[0] - 65] != playerSymbol)
+        return 0;
+
+    return 1;
+}
+
+//Checks if the game has ended
+//if there is a least one piece of the other player, it means that the game has not ended
+int isVictory(char winnerSymbol)
+{
+    for(int i = 0; i < 8; i++)
+    {
+        for(int j = 0; j < 9; j++)
+        {
+            if(board[i][j] != winnerSymbol && board[i][j] != ' ')
+                return 0;
+        }
+    }
+
+    return 1;
+}
+
+//Checks if it is a valid board input. Like: A2, B5, C4, etc.
+int isA_validInput(char input[])
+{
+    if(strlen(input) != 2) return 0; 
+    else if(input[0] < 'A' || input[0] > 'H') return 0;
+    else if((input[1] - '0') < 1 || (input[1] - '0') > 8) return 0;
+    else return 1;
+    //the " - '0' " converts to an integer
 }
