@@ -78,6 +78,7 @@ void playerVs_player(void)
         while(1)
         {
             system("cls");
+            board[3][3] = 'O';
             printsBoard();
             
             printf("\n\nPlayer %c", playerTurn_symb);
@@ -166,7 +167,7 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
 {
     if(isA_validBoard_space(pieceIn_board) == 0) return 0;
 
-    if(board[(pieceIn_board[1] - '0') - 1][pieceIn_board[0] - 65] != playerSymbol)
+    if(board[pieceIn_board[1] - '0' - 1][pieceIn_board[0] - 65] != playerSymbol)
         return 0;
 
     return 1;
@@ -181,35 +182,39 @@ int isA_validMove(char pieceIn_board[], char placeTo_move[], char playerSymbol)
         isA_validBoard_space(pieceIn_board) == 0
     ) 
         return 0;
+    
+    if(board[placeTo_move[1] - '0' - 1][placeTo_move[0] - 65] != ' ')
+        return 0;
 
-    //checks if the place to move is in top(player1) or if it is in bottom(player2)
     if(playerSymbol == PLAYER1) 
     {
+        //checks if the place to move is in top(player1) or if it is in bottom(player2)
         if((placeTo_move[1] - '0') != ((pieceIn_board[1] - '0') + 1)) 
-            return 0; 
+            return 0;  
     }
-    else
+    else //player2
     {
         if((placeTo_move[1] - '0') != ((pieceIn_board[1] - '0') - 1)) 
-            return 0; 
+            return 0;
     }
 
     //checks if it is in diagonals
     if
     (
         ((placeTo_move[0] - 65) != (pieceIn_board[0] - 65 + 1)) && 
-        ((placeTo_move[0] - 65) != (pieceIn_board[0] - 65 - 1)) 
+        ((placeTo_move[0] - 65) != (pieceIn_board[0] - 65 - 1))
     ) 
         return 0; 
 
     return 1;
 }
 
-//Swamp in board to move the piece
+//Swamps in board to move the piece
+// - Before use it, checks if the positions are correct
 void movePiece(char pieceInit_pos[], char pieceDesti_pos[])
 {
     char 
-    temp = '\0', initMatrix[3] = {'\0'}, 
+    initMatrix[3] = {'\0'}, 
     destiMatrix[3] = {'\0'};
 
     //converts to matrix form
@@ -219,9 +224,8 @@ void movePiece(char pieceInit_pos[], char pieceDesti_pos[])
     destiMatrix[1] = pieceDesti_pos[1] - '0' - 1;
 
     //swamp the spaces in board
-    temp = board[initMatrix[1]][initMatrix[0]];
-    board[initMatrix[1]][initMatrix[0]] = board[destiMatrix[1]][destiMatrix[0]];
-    board[destiMatrix[1]][destiMatrix[0]] = temp;
+    board[destiMatrix[1]][destiMatrix[0]] = board[initMatrix[1]][initMatrix[0]];
+    board[initMatrix[1]][initMatrix[0]] = ' ';   
 }
 
 //Checks if the game has ended
