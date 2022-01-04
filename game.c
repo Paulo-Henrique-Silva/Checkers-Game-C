@@ -66,6 +66,7 @@ int menu(void)
 void playerVs_player(void)
 {
     char 
+    playerTurn_symb = PLAYER1,
     pieceIn_board[1024] = {'\0'},
     spaceTo_move[1024] = {'\0'};
 
@@ -78,11 +79,12 @@ void playerVs_player(void)
         {
             system("cls");
             printsBoard();
-
-            printf("\n\nSelect a Piece: ");
+            
+            printf("\n\nPlayer %c", playerTurn_symb);
+            printf("\nSelect a Piece: ");
             fgets(pieceIn_board, 1024, stdin);
 
-            if(isA_validPiece(pieceIn_board, 'X') != 0)
+            if(isA_validPiece(pieceIn_board, playerTurn_symb) != 0)
                 break; 
                 
             printf("\nInvalid Input!");
@@ -97,7 +99,7 @@ void playerVs_player(void)
             printf("\n\nMove your Selected Piece: ");
             fgets(spaceTo_move, 1024, stdin);
 
-            if(isA_validMove(pieceIn_board, spaceTo_move, 'X') != 0)
+            if(isA_validMove(pieceIn_board, spaceTo_move, playerTurn_symb) != 0)
             {
                 movePiece(pieceIn_board, spaceTo_move);
                 break; 
@@ -106,6 +108,12 @@ void playerVs_player(void)
             printf("\nInvalid Input!");
             getch();   
         }
+
+        //chnages players turns
+        if(playerTurn_symb == PLAYER1)
+            playerTurn_symb = PLAYER2;
+        else
+            playerTurn_symb = PLAYER1;
     }
     while(isVictory('X') == 0);
 
@@ -174,9 +182,17 @@ int isA_validMove(char pieceIn_board[], char placeTo_move[], char playerSymbol)
     ) 
         return 0;
 
-    //checks if it is superior
-    if((placeTo_move[1] - '0') != ((pieceIn_board[1] - '0') + 1)) 
-        return 0; 
+    //checks if the place to move is in top(player1) or if it is in bottom(player2)
+    if(playerSymbol == PLAYER1) 
+    {
+        if((placeTo_move[1] - '0') != ((pieceIn_board[1] - '0') + 1)) 
+            return 0; 
+    }
+    else
+    {
+        if((placeTo_move[1] - '0') != ((pieceIn_board[1] - '0') - 1)) 
+            return 0; 
+    }
 
     //checks if it is in diagonals
     if
