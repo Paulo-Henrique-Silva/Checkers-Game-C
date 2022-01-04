@@ -12,11 +12,12 @@ void playerVs_player(void);
 
 void resetBoard(void);
 void printsBoard(void);
-int isA_validPiece(char input[], char playerSymbol); 
-int isA_validMove(char input[], char playerSymbol);
+int isA_validPiece(char pieceIn_board[], char playerSymbol); 
+int isA_validMove(char input[], char pieceIn_board[], char playerSymbol);
+void movePiece(char pieceInit_pos[], char pieceDesti_pos[]);
 int isVictory(char winnerSymbol);
 
-int isA_validInput(char input[]);
+int isA_validBoard_space(char input[]);
 
 char board[8][8] = {'\0'};
 
@@ -64,47 +65,47 @@ int menu(void)
 
 void playerVs_player(void)
 {
-    char input[1024] = {'\0'};
+    char 
+    pieceIn_board[1024] = {'\0'},
+    spaceTo_move[1024] = {'\0'};
 
     resetBoard();
 
     do
     {
-        do 
+        //reads until is a valid player piece
+        while(1)
         {
             system("cls");
             printsBoard();
 
             printf("\n\nSelect a Piece: ");
-            fgets(input, 1024, stdin);
+            fgets(pieceIn_board, 1024, stdin);
 
-            if(isA_validPiece(input, 'X') == 0)
-            {
-                printf("\nInvalid Input!");
-                getch();
-            }
-            else 
-                break;
+            if(isA_validPiece(pieceIn_board, 'X') != 0)
+                break; 
+                
+            printf("\nInvalid Input!");
+            getch();   
         }
-        while(1);
-        /*
-        do 
+
+        while(1)
         {
             system("cls");
             printsBoard();
+            
+            printf("\n\nMove your Selected Piece: ");
+            fgets(spaceTo_move, 1024, stdin);
 
-            printf("\n\nSelect the Piece: ");
-            fgets(input, 1024, stdin);
-
-            if(isA_validPiece(input, 'X') == 0)
+            if(isA_validMove(pieceIn_board, spaceTo_move, 'X') != 0)
             {
-
+                movePiece(pieceIn_board, spaceTo_move);
+                break; 
             }
-            else 
-                break;
+
+            printf("\nInvalid Input!");
+            getch();   
         }
-        while(1);
-        */
     }
     while(isVictory('X') == 0);
 
@@ -153,18 +154,58 @@ void printsBoard(void)
 }
 
 //Checks if it's a valid player piece
-int isA_validPiece(char input[], char playerSymbol)
+int isA_validPiece(char pieceIn_board[], char playerSymbol)
 {
-    input[strlen(input) - 1] = '\0'; 
-    strupr(input);
-    //remove \n in last char and puts in upper case
+    if(isA_validBoard_space(pieceIn_board) == 0) return 0;
 
-    if(isA_validInput(input) == 0) return 0;
-
-    if(board[(input[1] - '0') - 1][input[0] - 65] != playerSymbol)
+    if(board[(pieceIn_board[1] - '0') - 1][pieceIn_board[0] - 65] != playerSymbol)
         return 0;
 
     return 1;
+}
+
+//checks if the piece can moves to that space in board
+int isA_validMove(char pieceIn_board[], char placeTo_move[], char playerSymbol)
+{
+    if
+    (
+        isA_validBoard_space(placeTo_move) == 0 || 
+        isA_validBoard_space(pieceIn_board) == 0
+    ) 
+        return 0;
+
+    //checks if it is superior
+    if((placeTo_move[1] - '0') != ((pieceIn_board[1] - '0') + 1)) 
+        return 0; 
+
+    //checks if it is in diagonals
+    if
+    (
+        ((placeTo_move[0] - 65) != (pieceIn_board[0] - 65 + 1)) && 
+        ((placeTo_move[0] - 65) != (pieceIn_board[0] - 65 - 1)) 
+    ) 
+        return 0; 
+
+    return 1;
+}
+
+//Swamp in board to move the piece
+void movePiece(char pieceInit_pos[], char pieceDesti_pos[])
+{
+    char 
+    temp = '\0', initMatrix[3] = {'\0'}, 
+    destiMatrix[3] = {'\0'};
+
+    //converts to matrix form
+    initMatrix[0] = pieceInit_pos[0] - 65;
+    initMatrix[1] = pieceInit_pos[1] - '0' - 1;
+    destiMatrix[0] = pieceDesti_pos[0] - 65;
+    destiMatrix[1] = pieceDesti_pos[1] - '0' - 1;
+
+    //swamp the spaces in board
+    temp = board[initMatrix[1]][initMatrix[0]];
+    board[initMatrix[1]][initMatrix[0]] = board[destiMatrix[1]][destiMatrix[0]];
+    board[destiMatrix[1]][destiMatrix[0]] = temp;
 }
 
 //Checks if the game has ended
@@ -183,12 +224,20 @@ int isVictory(char winnerSymbol)
     return 1;
 }
 
-//Checks if it is a valid board input. Like: A2, B5, C4, etc.
-int isA_validInput(char input[])
+//Checks if the input is like: A3, C5, E7, etc.
+int isA_validBoard_space(char input[])
 {
-    if(strlen(input) != 2) return 0; 
-    else if(input[0] < 'A' || input[0] > 'H') return 0;
-    else if((input[1] - '0') < 1 || (input[1] - '0') > 8) return 0;
-    else return 1;
+    strupr(input);
+    if(strchr(input, '\n') != NULL) input[strlen(input) - 1] = '\0';
+    //remove last char and put in upper case
+
+    if(strlen(input) != 2) 
+        return 0; 
+    else if(input[0] < 'A' || input[0] > 'H') 
+        return 0;
+    else if((input[1] - '0') < 1 || (input[1] - '0') > 8) 
+        return 0;
+    else 
+        return 1;
     //the " - '0' " converts to an integer
 }
