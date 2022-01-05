@@ -3,8 +3,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PLAYER1 'X'
-#define PLAYER2 'O'
+#define PLAYER1 'x'
+#define PLAYER2 'o'
 #define ISBLACK(i, j) ((i % 2 == 0 && j % 2 == 0) || (i % 2 != 0 && j % 2 != 0))
 
 int menu(void);
@@ -67,13 +67,14 @@ void playerVs_player(void)
     char 
     playerTurn_symb = '\0',
     pieceIn_board[1024] = {'\0'},
-    spaceTo_move[1024] = {'\0'};
+    posTo_move[1024] = {'\0'};
 
     resetBoard();
 
     do
     {
-        //chnages players turns
+        //changes players turns
+        //starts with player1
         if(playerTurn_symb == PLAYER1)
             playerTurn_symb = PLAYER2;
         else
@@ -85,6 +86,7 @@ void playerVs_player(void)
             system("cls");
             printsBoard();
             
+            //printf("\n\nTEST = %d", board[2][8]);
             printf("\n\nPlayer %c", playerTurn_symb);
             printf("\nSelect a Piece: ");
             fgets(pieceIn_board, 1024, stdin);
@@ -102,13 +104,10 @@ void playerVs_player(void)
             printsBoard();
             
             printf("\n\nMove your Selected Piece: ");
-            fgets(spaceTo_move, 1024, stdin);
+            fgets(posTo_move, 1024, stdin);
 
-            if(isA_validMove(pieceIn_board, spaceTo_move, playerTurn_symb) != 0)
-            {
-                //movePiece(pieceIn_board, spaceTo_move);
+            if(isA_validMove(pieceIn_board, posTo_move, playerTurn_symb) != 0)
                 break; 
-            }
 
             printf("\nInvalid Input!");
             getch();   
@@ -118,8 +117,8 @@ void playerVs_player(void)
 
     system("cls");
     printsBoard();
-    printf("\nEND GAME!");
-    printf("\nPlayer %c Wins!", playerTurn_symb);
+    printf("\n\nEND GAME!");
+    printf("\nPlayer '%c' Wins!", playerTurn_symb);
 }
 
 //resets the board if the correct pieces
@@ -166,12 +165,61 @@ void printsBoard(void)
 //Checks if it's a valid player piece
 int isA_validPiece(char pieceIn_board[], char playerSymbol)
 {
-    if(isA_validBoard_space(pieceIn_board) == 0) return 0;
+    char posIn_board[3] = {'\0'};
 
-    if(board[pieceIn_board[1] - '0' - 1][pieceIn_board[0] - 65] != playerSymbol)
+    if(isA_validBoard_space(pieceIn_board) == 0) return 0;
+    
+    //converts to matriz form, that is
+    //A3 -> (2,0)
+    posIn_board[0] = pieceIn_board[0] - 65;
+    posIn_board[1] = pieceIn_board[1] - '0' - 1;
+
+    if(board[posIn_board[1]][posIn_board[0]] != playerSymbol)
         return 0;
 
-    return 1;
+    //checks if the piece is blocked
+    if 
+    (
+        playerSymbol == PLAYER1 && 
+
+        //if it is not blocked by a board wall or a piece(right)
+        ((board[posIn_board[1] + 1][posIn_board[0] + 1] == ' ' &&
+        (posIn_board[0] + 1) >= 0 && (posIn_board[0] + 1) <= 7) ||
+        
+        //if it is not blocked by a board wall or a piece(left)
+        (board[posIn_board[1] + 1][posIn_board[0] - 1] == ' ' &&
+        (posIn_board[0] - 1) >= 0 && (posIn_board[0] - 1) <= 7) ||
+
+        //if it cans get an enemies piece to move(right)
+        (board[posIn_board[1] + 1][posIn_board[0] + 1] == PLAYER2 &&
+        board[posIn_board[1] + 2][posIn_board[0] + 2] == ' ') ||
+        
+        //if it cans get an enemies piece to move(left)
+        (board[posIn_board[1] + 1][posIn_board[0] - 1] == PLAYER2 &&
+        board[posIn_board[1] + 2][posIn_board[0] - 2] == ' '))
+    )
+        return 1;
+
+    if //same logic, for player2
+    (
+        playerSymbol == PLAYER2 &&
+
+        ((board[posIn_board[1] - 1][posIn_board[0] + 1] == ' ' && 
+        (posIn_board[0] + 1) >= 0 && (posIn_board[0] + 1) <= 7) ||
+
+        (board[posIn_board[1] - 1][posIn_board[0] - 1] == ' ' &&
+        (posIn_board[0] - 1) >= 0 && (posIn_board[0] - 1) <= 7) ||
+
+        (board[posIn_board[1] - 1][posIn_board[0] + 1] == PLAYER1 &&
+        board[posIn_board[1] - 2][posIn_board[0] + 2] == ' ') ||
+
+        (board[posIn_board[1] - 1][posIn_board[0] - 1] == PLAYER1 &&
+        board[posIn_board[1] - 2][posIn_board[0] - 2] == ' '))
+    )
+        return 1;
+
+    //if any case matches, it means that the piece is blocked
+    return 0;
 }
 
 //Checks if the piece can moves to that space in board
@@ -201,7 +249,7 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
     
     if(playerSymbol == PLAYER1)
     {
-        if
+        if //if the player can get an enemies piece(right)
         (
             destiPos[0] == initPos[0] + 2 && destiPos[1] == initPos[1] + 2 
             && board[initPos[1] + 1][initPos[0] + 1] == PLAYER2  
@@ -212,7 +260,7 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
             board[initPos[1] + 1][initPos[0] + 1] = ' ';
             return 1;
         }
-        else if
+        else if //if the player can get enemie's piece(left)
         (
             destiPos[0] == initPos[0] - 2 && destiPos[1] == initPos[1] + 2 && 
             board[initPos[1] + 1][initPos[0] - 1] == PLAYER2
@@ -223,7 +271,7 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
             board[initPos[1] + 1][initPos[0] - 1] = ' ';
             return 1;
         }
-        else if
+        else if //just move, left or right
         (
             (destiPos[0] == initPos[0] + 1 && destiPos[1] == initPos[1] + 1) ||
             (destiPos[0] == initPos[0] - 1 && destiPos[1] == initPos[1] + 1) 
@@ -234,7 +282,7 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
             return 1;
         }
     }
-    else
+    else //player2 - same logic
     {
         if
         (
@@ -270,6 +318,7 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
         }
     }
 
+    //if any case matches, it means that it is not a valid move
     return 0;
 }
 
@@ -294,7 +343,7 @@ int isA_validBoard_space(char input[])
 {
     strupr(input);
     if(strchr(input, '\n') != NULL) input[strlen(input) - 1] = '\0';
-    //remove last char and put in upper case
+    //remove last char \n(if it has it) and put in upper case
 
     if(strlen(input) != 2) 
         return 0; 
