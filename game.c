@@ -7,6 +7,38 @@
 #define PLAYER2 'o'
 #define ISBLACK(i, j) ((i % 2 == 0 && j % 2 == 0) || (i % 2 != 0 && j % 2 != 0))
 
+/* 
+- Positions in board to understand the preprocessors
+
+    |SECOND_UPPR_LEFT|               |   |                |SECOND_UPPR_RIGHT|
+    |                |FIRST_UPPR_LEFT|   |FIRST_UPPR_RIGHT|                 |
+    |                |               |pos|                |                 |
+    |                |FIRST_LOWR_LEFT|   |FIRST_LOWR_RIGHT|                 |
+    |SECOND_LOWR_LEFT|               |   |                |SECOND_LOWR_RIGHT|
+*/
+#define FIRST_UPPR_RIGHT(pos) (board[pos[1] + 1][pos[0] + 1])
+#define SECOND_UPPR_RIGHT(pos) (board[pos[1] + 2][pos[0] + 2])
+#define FIRST_UPPR_LEFT(pos) (board[pos[1] + 1][pos[0] - 1])
+#define SECOND_UPPR_LEFT(pos) (board[pos[1] + 2][pos[0] - 2])
+
+#define FIRST_LOWR_RIGHT(pos) (board[pos[1] - 1][pos[0] + 1])
+#define SECOND_LOWR_RIGHT(pos) (board[pos[1] - 2][pos[0] + 2])
+#define FIRST_LOWR_LEFT(pos) (board[pos[1] - 1][pos[0] - 1])
+#define SECOND_LOWR_LEFT(pos) (board[pos[1] - 2][pos[0] - 2])
+
+/*
+    WALL
+     |
+     |
+     | X | <- The program interpers like an empty space, but it is out game board
+  pos|
+     |
+
+- Therefore, this prepocessors says to program to not consider the space, if returns false
+*/
+#define IS_IN_BOARD_RIGHT(pos) ((pos[0] + 1) >= 0 && (pos[0] + 1) <= 7)
+#define IS_IN_BOARD_LEFT(pos)  ((pos[0] - 1) >= 0 && (pos[0] - 1) <= 7)
+
 int menu(void);
 void playerVs_player(void);
 
@@ -75,10 +107,7 @@ void playerVs_player(void)
     {
         //changes players turns
         //starts with player1
-        if(playerTurn_symb == PLAYER1)
-            playerTurn_symb = PLAYER2;
-        else
-            playerTurn_symb = PLAYER1;
+        playerTurn_symb = (playerTurn_symb == PLAYER1) ? PLAYER2 : PLAYER1;
 
         //reads until is a valid player piece
         while(1)
@@ -103,6 +132,7 @@ void playerVs_player(void)
             system("cls");
             printsBoard();
             
+            printf("\n\nPlayer %c", playerTurn_symb);
             printf("\n\nMove your Selected Piece: ");
             fgets(posTo_move, 1024, stdin);
 
@@ -118,7 +148,7 @@ void playerVs_player(void)
     system("cls");
     printsBoard();
     printf("\n\nEND GAME!");
-    printf("\nPlayer '%c' Wins!", playerTurn_symb);
+    printf("\nPLAYER '%c' WINS!", playerTurn_symb);
 }
 
 //resets the board if the correct pieces
@@ -183,20 +213,16 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
         playerSymbol == PLAYER1 && 
 
         //if it is not blocked by a board wall or a piece(right)
-        ((board[posIn_board[1] + 1][posIn_board[0] + 1] == ' ' &&
-        (posIn_board[0] + 1) >= 0 && (posIn_board[0] + 1) <= 7) ||
+        ((FIRST_UPPR_RIGHT(posIn_board) == ' ' && IS_IN_BOARD_RIGHT(posIn_board) == 1) ||
         
         //if it is not blocked by a board wall or a piece(left)
-        (board[posIn_board[1] + 1][posIn_board[0] - 1] == ' ' &&
-        (posIn_board[0] - 1) >= 0 && (posIn_board[0] - 1) <= 7) ||
+        (FIRST_UPPR_LEFT(posIn_board) == ' ' && IS_IN_BOARD_LEFT(posIn_board) == 1) ||
 
         //if it cans get an enemies piece to move(right)
-        (board[posIn_board[1] + 1][posIn_board[0] + 1] == PLAYER2 &&
-        board[posIn_board[1] + 2][posIn_board[0] + 2] == ' ') ||
+        (FIRST_UPPR_RIGHT(posIn_board) == PLAYER2 && SECOND_UPPR_RIGHT(posIn_board) == ' ') ||
         
         //if it cans get an enemies piece to move(left)
-        (board[posIn_board[1] + 1][posIn_board[0] - 1] == PLAYER2 &&
-        board[posIn_board[1] + 2][posIn_board[0] - 2] == ' '))
+        (FIRST_UPPR_LEFT(posIn_board) == PLAYER2 && SECOND_UPPR_LEFT(posIn_board) == ' '))
     )
         return 1;
 
@@ -204,17 +230,13 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
     (
         playerSymbol == PLAYER2 &&
 
-        ((board[posIn_board[1] - 1][posIn_board[0] + 1] == ' ' && 
-        (posIn_board[0] + 1) >= 0 && (posIn_board[0] + 1) <= 7) ||
+        ((FIRST_LOWR_RIGHT(posIn_board) == ' ' && IS_IN_BOARD_RIGHT(posIn_board) == 1) ||
 
-        (board[posIn_board[1] - 1][posIn_board[0] - 1] == ' ' &&
-        (posIn_board[0] - 1) >= 0 && (posIn_board[0] - 1) <= 7) ||
+        (FIRST_LOWR_LEFT(posIn_board) == ' ' && IS_IN_BOARD_LEFT(posIn_board) == 1) ||
 
-        (board[posIn_board[1] - 1][posIn_board[0] + 1] == PLAYER1 &&
-        board[posIn_board[1] - 2][posIn_board[0] + 2] == ' ') ||
+        (FIRST_LOWR_RIGHT(posIn_board) == PLAYER1 && SECOND_LOWR_RIGHT(posIn_board) == ' ') ||
 
-        (board[posIn_board[1] - 1][posIn_board[0] - 1] == PLAYER1 &&
-        board[posIn_board[1] - 2][posIn_board[0] - 2] == ' '))
+        (FIRST_LOWR_LEFT(posIn_board) == PLAYER1 && SECOND_LOWR_LEFT(posIn_board) == ' '))
     )
         return 1;
 
@@ -251,24 +273,24 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
     {
         if //if the player can get an enemies piece(right)
         (
-            destiPos[0] == initPos[0] + 2 && destiPos[1] == initPos[1] + 2 
-            && board[initPos[1] + 1][initPos[0] + 1] == PLAYER2  
+            destiPos[0] == initPos[0] + 2 && destiPos[1] == initPos[1] + 2 && 
+            FIRST_UPPR_RIGHT(initPos) == PLAYER2  
         )
         {
             board[destiPos[1]][destiPos[0]] = PLAYER1;
             board[initPos[1]][initPos[0]] = ' ';
-            board[initPos[1] + 1][initPos[0] + 1] = ' ';
+            FIRST_UPPR_RIGHT(initPos) = ' ';
             return 1;
         }
         else if //if the player can get enemie's piece(left)
         (
             destiPos[0] == initPos[0] - 2 && destiPos[1] == initPos[1] + 2 && 
-            board[initPos[1] + 1][initPos[0] - 1] == PLAYER2
+            FIRST_UPPR_LEFT(initPos) == PLAYER2
         )
         {
             board[destiPos[1]][destiPos[0]] = PLAYER1;
             board[initPos[1]][initPos[0]] = ' ';
-            board[initPos[1] + 1][initPos[0] - 1] = ' ';
+            FIRST_UPPR_LEFT(initPos) = ' ';
             return 1;
         }
         else if //just move, left or right
@@ -286,24 +308,24 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
     {
         if
         (
-            destiPos[0] == initPos[0] + 2 && destiPos[1] == initPos[1] - 2 
-            && board[initPos[1] - 1][initPos[0] + 1] == PLAYER1  
+            destiPos[0] == initPos[0] + 2 && destiPos[1] == initPos[1] - 2 && 
+            FIRST_LOWR_RIGHT(initPos) == PLAYER1  
         )
         {
             board[destiPos[1]][destiPos[0]] = PLAYER2;
             board[initPos[1]][initPos[0]] = ' ';
-            board[initPos[1] - 1][initPos[0] + 1] = ' ';
+            FIRST_LOWR_RIGHT(initPos) = ' ';
             return 1;
         }
         else if
         (
             destiPos[0] == initPos[0] - 2 && destiPos[1] == initPos[1] - 2 && 
-            board[initPos[1] - 1][initPos[0] - 1] == PLAYER1
+            FIRST_LOWR_LEFT(initPos) == PLAYER1
         )
         {
             board[destiPos[1]][destiPos[0]] = PLAYER2;
             board[initPos[1]][initPos[0]] = ' ';
-            board[initPos[1] - 1][initPos[0] - 1] = ' ';
+            FIRST_LOWR_LEFT(initPos) = ' ';
             return 1;
         }
         else if
