@@ -13,8 +13,7 @@ void playerVs_player(void);
 void resetBoard(void);
 void printsBoard(void);
 int isA_validPiece(char pieceIn_board[], char playerSymbol); 
-int isA_validMove(char input[], char pieceIn_board[], char playerSymbol);
-void movePiece(char pieceInit_pos[], char pieceDesti_pos[]);
+int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol);
 int isVictory(char winnerSymbol);
 
 int isA_validBoard_space(char input[]);
@@ -66,7 +65,7 @@ int menu(void)
 void playerVs_player(void)
 {
     char 
-    playerTurn_symb = PLAYER1,
+    playerTurn_symb = '\0',
     pieceIn_board[1024] = {'\0'},
     spaceTo_move[1024] = {'\0'};
 
@@ -74,11 +73,16 @@ void playerVs_player(void)
 
     do
     {
+        //chnages players turns
+        if(playerTurn_symb == PLAYER1)
+            playerTurn_symb = PLAYER2;
+        else
+            playerTurn_symb = PLAYER1;
+
         //reads until is a valid player piece
         while(1)
         {
             system("cls");
-            board[3][3] = 'O';
             printsBoard();
             
             printf("\n\nPlayer %c", playerTurn_symb);
@@ -102,23 +106,20 @@ void playerVs_player(void)
 
             if(isA_validMove(pieceIn_board, spaceTo_move, playerTurn_symb) != 0)
             {
-                movePiece(pieceIn_board, spaceTo_move);
+                //movePiece(pieceIn_board, spaceTo_move);
                 break; 
             }
 
             printf("\nInvalid Input!");
             getch();   
         }
-
-        //chnages players turns
-        if(playerTurn_symb == PLAYER1)
-            playerTurn_symb = PLAYER2;
-        else
-            playerTurn_symb = PLAYER1;
     }
-    while(isVictory('X') == 0);
+    while(isVictory(playerTurn_symb) == 0);
 
+    system("cls");
+    printsBoard();
     printf("\nEND GAME!");
+    printf("\nPlayer %c Wins!", playerTurn_symb);
 }
 
 //resets the board if the correct pieces
@@ -173,59 +174,103 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
     return 1;
 }
 
-//checks if the piece can moves to that space in board
-int isA_validMove(char pieceIn_board[], char placeTo_move[], char playerSymbol)
-{
-    if
-    (
-        isA_validBoard_space(placeTo_move) == 0 || 
-        isA_validBoard_space(pieceIn_board) == 0
-    ) 
-        return 0;
-    
-    if(board[placeTo_move[1] - '0' - 1][placeTo_move[0] - 65] != ' ')
-        return 0;
-
-    if(playerSymbol == PLAYER1) 
-    {
-        //checks if the place to move is in top(player1) or if it is in bottom(player2)
-        if((placeTo_move[1] - '0') != ((pieceIn_board[1] - '0') + 1)) 
-            return 0;  
-    }
-    else //player2
-    {
-        if((placeTo_move[1] - '0') != ((pieceIn_board[1] - '0') - 1)) 
-            return 0;
-    }
-
-    //checks if it is in diagonals
-    if
-    (
-        ((placeTo_move[0] - 65) != (pieceIn_board[0] - 65 + 1)) && 
-        ((placeTo_move[0] - 65) != (pieceIn_board[0] - 65 - 1))
-    ) 
-        return 0; 
-
-    return 1;
-}
-
-//Swamps in board to move the piece
-// - Before use it, checks if the positions are correct
-void movePiece(char pieceInit_pos[], char pieceDesti_pos[])
+//Checks if the piece can moves to that space in board
+//if it can, moves the piece
+int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
 {
     char 
-    initMatrix[3] = {'\0'}, 
-    destiMatrix[3] = {'\0'};
+    initPos[3] = {'\0'}, 
+    destiPos[3] = {'\0'};
+
+    if
+    (
+        isA_validBoard_space(posTo_move) == 0 || 
+        isA_validBoard_space(posIn_board) == 0
+    ) 
+        return 0;
 
     //converts to matrix form
-    initMatrix[0] = pieceInit_pos[0] - 65;
-    initMatrix[1] = pieceInit_pos[1] - '0' - 1;
-    destiMatrix[0] = pieceDesti_pos[0] - 65;
-    destiMatrix[1] = pieceDesti_pos[1] - '0' - 1;
+    initPos[0] = posIn_board[0] - 65;
+    initPos[1] = posIn_board[1] - '0' - 1;
+    destiPos[0] = posTo_move[0] - 65;
+    destiPos[1] = posTo_move[1] - '0' - 1;
 
-    //swamp the spaces in board
-    board[destiMatrix[1]][destiMatrix[0]] = board[initMatrix[1]][initMatrix[0]];
-    board[initMatrix[1]][initMatrix[0]] = ' ';   
+    //if it is not empty 
+    if(board[destiPos[1]][destiPos[0]] != ' ')
+        return 0;
+    
+    if(playerSymbol == PLAYER1)
+    {
+        if
+        (
+            destiPos[0] == initPos[0] + 2 && destiPos[1] == initPos[1] + 2 
+            && board[initPos[1] + 1][initPos[0] + 1] == PLAYER2  
+        )
+        {
+            board[destiPos[1]][destiPos[0]] = PLAYER1;
+            board[initPos[1]][initPos[0]] = ' ';
+            board[initPos[1] + 1][initPos[0] + 1] = ' ';
+            return 1;
+        }
+        else if
+        (
+            destiPos[0] == initPos[0] - 2 && destiPos[1] == initPos[1] + 2 && 
+            board[initPos[1] + 1][initPos[0] - 1] == PLAYER2
+        )
+        {
+            board[destiPos[1]][destiPos[0]] = PLAYER1;
+            board[initPos[1]][initPos[0]] = ' ';
+            board[initPos[1] + 1][initPos[0] - 1] = ' ';
+            return 1;
+        }
+        else if
+        (
+            (destiPos[0] == initPos[0] + 1 && destiPos[1] == initPos[1] + 1) ||
+            (destiPos[0] == initPos[0] - 1 && destiPos[1] == initPos[1] + 1) 
+        )
+        {
+            board[destiPos[1]][destiPos[0]] = PLAYER1;
+            board[initPos[1]][initPos[0]] = ' ';
+            return 1;
+        }
+    }
+    else
+    {
+        if
+        (
+            destiPos[0] == initPos[0] + 2 && destiPos[1] == initPos[1] - 2 
+            && board[initPos[1] - 1][initPos[0] + 1] == PLAYER1  
+        )
+        {
+            board[destiPos[1]][destiPos[0]] = PLAYER2;
+            board[initPos[1]][initPos[0]] = ' ';
+            board[initPos[1] - 1][initPos[0] + 1] = ' ';
+            return 1;
+        }
+        else if
+        (
+            destiPos[0] == initPos[0] - 2 && destiPos[1] == initPos[1] - 2 && 
+            board[initPos[1] - 1][initPos[0] - 1] == PLAYER1
+        )
+        {
+            board[destiPos[1]][destiPos[0]] = PLAYER2;
+            board[initPos[1]][initPos[0]] = ' ';
+            board[initPos[1] - 1][initPos[0] - 1] = ' ';
+            return 1;
+        }
+        else if
+        (
+            (destiPos[0] == initPos[0] + 1 && destiPos[1] == initPos[1] - 1) ||
+            (destiPos[0] == initPos[0] - 1 && destiPos[1] == initPos[1] - 1) 
+        )
+        {
+            board[destiPos[1]][destiPos[0]] = PLAYER2;
+            board[initPos[1]][initPos[0]] = ' ';
+            return 1;
+        }
+    }
+
+    return 0;
 }
 
 //Checks if the game has ended
@@ -234,7 +279,7 @@ int isVictory(char winnerSymbol)
 {
     for(int i = 0; i < 8; i++)
     {
-        for(int j = 0; j < 9; j++)
+        for(int j = 0; j < 8; j++)
         {
             if(board[i][j] != winnerSymbol && board[i][j] != ' ')
                 return 0;
