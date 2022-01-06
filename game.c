@@ -215,7 +215,7 @@ void printsBoard(void)
 int isA_validPiece(char pieceIn_board[], char playerSymbol)
 {
     char posIn_board[3] = {'\0'};
-
+    
     if(isA_validBoard_space(pieceIn_board) == 0) return 0;
     
     //converts to matriz form, that is
@@ -223,11 +223,27 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
     posIn_board[0] = pieceIn_board[0] - 65;
     posIn_board[1] = pieceIn_board[1] - '0' - 1;
 
-    if(board[posIn_board[1]][posIn_board[0]] != playerSymbol)
-        return 0;
+    if(playerSymbol == PLAYER1_MEN)
+    {
+        if
+        (
+            board[posIn_board[1]][posIn_board[0]] != PLAYER1_MEN &&
+            board[posIn_board[1]][posIn_board[0]] != PLAYER1_KING
+        )
+            return 0;
+    }
+    else //player 2
+    {
+        if
+        (
+            board[posIn_board[1]][posIn_board[0]] != PLAYER2_MEN &&
+            board[posIn_board[1]][posIn_board[0]] != PLAYER2_KING
+        )
+            return 0;
+    }
     
     //checks if the piece is blocked
-    switch(playerSymbol)
+    switch(board[posIn_board[1]][posIn_board[0]])
     {
         case PLAYER1_MEN:
             if 
@@ -252,7 +268,7 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
             
             return 0; //if any case matches, it means that it is not a valid piece
         
-        case PLAYER2_MEN: //same logic, for player2_MEN
+        case PLAYER2_MEN: //same logic, for player2
             if 
             (
                 (LWR_1ST_RT_VAL(posIn_board) == ' ' && 
@@ -268,7 +284,17 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
                 IS_IN_BOARD(posIn_board[1] - 2, posIn_board[0] - 2))
             )
                 return 1;
-           
+
+            return 0;
+        
+        case PLAYER1_KING:
+                return 1;
+            
+            return 0;
+
+        case PLAYER2_KING:
+                return 1;
+
             return 0;
     }
 }
@@ -298,7 +324,8 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
     if(board[destiPos[1]][destiPos[0]] != ' ')
         return 0;
 
-    switch(playerSymbol)
+    //Checks piece's possible moves
+    switch(board[initPos[1]][initPos[0]])
     {
         case PLAYER1_MEN:
 
@@ -350,6 +377,16 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
                 board[initPos[1]][initPos[0]] = ' ';
                 return 1;
             }
+
+            return 0;
+        
+        case PLAYER1_KING:
+                return 1;
+            
+            return 0;
+
+        case PLAYER2_KING:
+                return 1;
 
             return 0;
     }
