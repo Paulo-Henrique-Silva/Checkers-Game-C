@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define PLAYER1 'x'
-#define PLAYER2 'o'
+#define PLAYER1_MEN 'x'
+#define PLAYER2_MEN 'o'
+#define PLAYER1_KING 'X'
+#define PLAYER2_KING 'O'
 #define ISBLACK(i, j) ((i % 2 == 0 && j % 2 == 0) || (i % 2 != 0 && j % 2 != 0))
 
 /* 
@@ -29,7 +31,7 @@
 #define LWR_1ST_LT_VAL(pos) (board[pos[1] - 1][pos[0] - 1])
 #define LWR_2ND_LT_VAL(pos) (board[pos[1] - 2][pos[0] - 2])
 
-//returns if the pos is in that space in board, based in other pos
+//returns if the position is in that space in board, based in other pos
 #define IS_IN_UPR_1ST_RT(pos, pos_cmp) ((pos_cmp[1] == pos[1] + 1) && (pos_cmp[0] == pos[0] + 1))
 #define IS_IN_UPR_2ND_RT(pos, pos_cmp) ((pos_cmp[1] == pos[1] + 2) && (pos_cmp[0] == pos[0] + 2))
 #define IS_IN_UPR_1ST_LT(pos, pos_cmp) ((pos_cmp[1] == pos[1] + 1) && (pos_cmp[0] == pos[0] - 1))
@@ -50,8 +52,7 @@
 
 - Therefore, this prepocessors says to program to not consider the space, if returns false
 */
-#define IS_IN_BOARD_RIGHT(pos) ((pos[0] + 1) >= 0 && (pos[0] + 1) <= 7)
-#define IS_IN_BOARD_LEFT(pos)  ((pos[0] - 1) >= 0 && (pos[0] - 1) <= 7)
+#define IS_IN_BOARD(posI, posJ) ((posI >= 0 && posI <= 7) && (posJ >= 0 && posJ <= 7))
 
 int menu(void);
 void playerVs_player(void);
@@ -120,8 +121,8 @@ void playerVs_player(void)
     do
     {
         //changes players turns
-        //starts with player1
-        playerTurn_symb = (playerTurn_symb == PLAYER1) ? PLAYER2 : PLAYER1;
+        //starts with player1_MEN
+        playerTurn_symb = (playerTurn_symb == PLAYER1_MEN) ? PLAYER2_MEN : PLAYER1_MEN;
 
         //reads until is a valid player piece
         while(1)
@@ -177,9 +178,9 @@ void resetBoard(void)
         for(j = 1; j < 9; j++)
         {
             if(i > 5 && ISBLACK(i, j))
-                board[i-1][j-1] = PLAYER2;
+                board[i-1][j-1] = PLAYER2_MEN;
             else if(i < 4 && ISBLACK(i, j))
-                 board[i-1][j-1] = PLAYER1;
+                 board[i-1][j-1] = PLAYER1_MEN;
             else
                 board[i-1][j-1] = ' ';
         }
@@ -220,42 +221,52 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
 
     if(board[posIn_board[1]][posIn_board[0]] != playerSymbol)
         return 0;
-
+    
     //checks if the piece is blocked
-    if 
-    (
-        playerSymbol == PLAYER1 && 
+    switch(playerSymbol)
+    {
+        case PLAYER1_MEN:
+            if 
+            (
+                //if it is not blocked by a board wall or a piece(right)
+                (UPR_1ST_RT_VAL(posIn_board) == ' ' && 
+                IS_IN_BOARD(posIn_board[1] + 1, posIn_board[0] + 1)) ||
+                
+                //if it is not blocked by a board wall or a piece(left)
+                (UPR_1ST_LT_VAL(posIn_board) == ' ' &&
+                IS_IN_BOARD(posIn_board[1] + 1, posIn_board[0] - 1)) ||
 
-        //if it is not blocked by a board wall or a piece(right)
-        ((UPR_1ST_RT_VAL(posIn_board) == ' ' && IS_IN_BOARD_RIGHT(posIn_board)) ||
+                //if it cans get an enemies piece to move(right)
+                (UPR_1ST_RT_VAL(posIn_board) == PLAYER2_MEN && UPR_2ND_RT_VAL(posIn_board) == ' ' && 
+                IS_IN_BOARD(posIn_board[1] + 2, posIn_board[0] + 2)) ||
+                
+                //if it cans get an enemies piece to move(left)
+                (UPR_1ST_LT_VAL(posIn_board) == PLAYER2_MEN && UPR_2ND_LT_VAL(posIn_board) == ' ' &&
+                IS_IN_BOARD(posIn_board[1] + 2, posIn_board[0] - 2))
+            )
+                return 1;
+            
+            return 0; //if any case matches, it means that it is not a valid piece
         
-        //if it is not blocked by a board wall or a piece(left)
-        (UPR_1ST_LT_VAL(posIn_board) == ' ' && IS_IN_BOARD_LEFT(posIn_board)) ||
+        case PLAYER2_MEN: //same logic, for player2_MEN
+            if 
+            (
+                (LWR_1ST_RT_VAL(posIn_board) == ' ' && 
+                IS_IN_BOARD(posIn_board[1] - 1, posIn_board[0] + 1)) ||
 
-        //if it cans get an enemies piece to move(right)
-        (UPR_1ST_RT_VAL(posIn_board) == PLAYER2 && UPR_2ND_RT_VAL(posIn_board) == ' ') ||
-        
-        //if it cans get an enemies piece to move(left)
-        (UPR_1ST_LT_VAL(posIn_board) == PLAYER2 && UPR_2ND_LT_VAL(posIn_board) == ' '))
-    )
-        return 1;
+                (LWR_1ST_LT_VAL(posIn_board) == ' ' && 
+                IS_IN_BOARD(posIn_board[1] - 1, posIn_board[0] - 1)) ||
 
-    if //same logic, for player2
-    (
-        playerSymbol == PLAYER2 &&
+                (LWR_1ST_RT_VAL(posIn_board) == PLAYER1_MEN && LWR_2ND_RT_VAL(posIn_board) == ' ' &&
+                IS_IN_BOARD(posIn_board[1] - 2, posIn_board[0] + 2)) ||
 
-        ((LWR_1ST_RT_VAL(posIn_board) == ' ' && IS_IN_BOARD_RIGHT(posIn_board)) ||
-
-        (LWR_1ST_LT_VAL(posIn_board) == ' ' && IS_IN_BOARD_LEFT(posIn_board)) ||
-
-        (LWR_1ST_RT_VAL(posIn_board) == PLAYER1 && LWR_2ND_RT_VAL(posIn_board) == ' ') ||
-
-        (LWR_1ST_LT_VAL(posIn_board) == PLAYER1 && LWR_2ND_LT_VAL(posIn_board) == ' '))
-    )
-        return 1;
-
-    //if any case matches, it means that the piece is blocked
-    return 0;
+                (LWR_1ST_LT_VAL(posIn_board) == PLAYER1_MEN && LWR_2ND_LT_VAL(posIn_board) == ' ' &&
+                IS_IN_BOARD(posIn_board[1] - 2, posIn_board[0] - 2))
+            )
+                return 1;
+           
+            return 0;
+    }
 }
 
 //Checks if the piece can moves to that space in board
@@ -285,20 +296,20 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
 
     switch(playerSymbol)
     {
-        case PLAYER1:
+        case PLAYER1_MEN:
 
             //if the player can get an enemies piece(right)
-            if(IS_IN_UPR_2ND_RT(initPos, destiPos) && UPR_1ST_RT_VAL(initPos) == PLAYER2)
+            if(IS_IN_UPR_2ND_RT(initPos, destiPos) && UPR_1ST_RT_VAL(initPos) == PLAYER2_MEN)
             {
-                board[destiPos[1]][destiPos[0]] = PLAYER1;
+                board[destiPos[1]][destiPos[0]] = PLAYER1_MEN;
                 board[initPos[1]][initPos[0]] = ' ';
                 UPR_1ST_RT_VAL(initPos) = ' ';
                 return 1;
             } 
             //if the player can get enemie's piece(left)
-            else if(IS_IN_UPR_2ND_LT(initPos, destiPos) && UPR_1ST_LT_VAL(initPos) == PLAYER2)
+            else if(IS_IN_UPR_2ND_LT(initPos, destiPos) && UPR_1ST_LT_VAL(initPos) == PLAYER2_MEN)
             {
-                board[destiPos[1]][destiPos[0]] = PLAYER1;
+                board[destiPos[1]][destiPos[0]] = PLAYER1_MEN;
                 board[initPos[1]][initPos[0]] = ' ';
                 UPR_1ST_LT_VAL(initPos) = ' ';
                 return 1;
@@ -306,34 +317,36 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
             //just move, left or right
             else if(IS_IN_UPR_1ST_RT(initPos, destiPos) || IS_IN_UPR_1ST_LT(initPos, destiPos))
             {
-                board[destiPos[1]][destiPos[0]] = PLAYER1;
+                board[destiPos[1]][destiPos[0]] = PLAYER1_MEN;
                 board[initPos[1]][initPos[0]] = ' ';
                 return 1;
             }
+
             return 0; //if any case matches, it means that it is not a valid move
 
-        case PLAYER2: //same logic
+        case PLAYER2_MEN: //same logic
 
-            if(IS_IN_LWR_2ND_RT(initPos, destiPos) && LWR_1ST_RT_VAL(initPos) == PLAYER1)
+            if(IS_IN_LWR_2ND_RT(initPos, destiPos) && LWR_1ST_RT_VAL(initPos) == PLAYER1_MEN)
             {
-                board[destiPos[1]][destiPos[0]] = PLAYER2;
+                board[destiPos[1]][destiPos[0]] = PLAYER2_MEN;
                 board[initPos[1]][initPos[0]] = ' ';
                 LWR_1ST_RT_VAL(initPos) = ' ';
                 return 1;
             }
-            else if(IS_IN_LWR_2ND_LT(initPos, destiPos) && LWR_1ST_LT_VAL(initPos) == PLAYER1)
+            else if(IS_IN_LWR_2ND_LT(initPos, destiPos) && LWR_1ST_LT_VAL(initPos) == PLAYER1_MEN)
             {
-                board[destiPos[1]][destiPos[0]] = PLAYER2;
+                board[destiPos[1]][destiPos[0]] = PLAYER2_MEN;
                 board[initPos[1]][initPos[0]] = ' ';
                 LWR_1ST_LT_VAL(initPos) = ' ';
                 return 1;
             }
             else if(IS_IN_LWR_1ST_RT(initPos, destiPos) || IS_IN_LWR_1ST_LT(initPos, destiPos))
             {
-                board[destiPos[1]][destiPos[0]] = PLAYER2;
+                board[destiPos[1]][destiPos[0]] = PLAYER2_MEN;
                 board[initPos[1]][initPos[0]] = ' ';
                 return 1;
             }
+
             return 0;
     }
 }
