@@ -61,6 +61,7 @@ void resetBoard(void);
 void printsBoard(void);
 int isA_validPiece(char pieceIn_board[], char playerSymbol); 
 int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol);
+void isA_validKing(char pos[], char playerSymbol);
 int isVictory(char winnerSymbol);
 
 int isA_validBoard_space(char input[]);
@@ -152,7 +153,10 @@ void playerVs_player(void)
             fgets(posTo_move, 1024, stdin);
 
             if(isA_validMove(pieceIn_board, posTo_move, playerTurn_symb) != 0)
+            {
+                isA_validKing(posTo_move, playerTurn_symb);
                 break; 
+            }
 
             printf("\nInvalid Input!");
             getch();   
@@ -351,13 +355,29 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
     }
 }
 
+//If the piece that has just moved is a new king, the function creates a king 
+void isA_validKing(char pos[], char playerSymbol)
+{
+    char piecePos[3] = {'\0'};
+
+    piecePos[0] = pos[0] - 65; 
+    piecePos[1] = pos[1] - '0' - 1; 
+
+    if(playerSymbol == PLAYER1_MEN && piecePos[1] == 7) //creates a king in top
+        board[piecePos[1]][piecePos[0]] = PLAYER1_KING;
+    else if(playerSymbol == PLAYER2_MEN && piecePos[1] == 0) //creates a king in bot
+        board[piecePos[1]][piecePos[0]] = PLAYER2_KING;
+}
+
 //Checks if the game has ended
 //if there is a least one piece of the other player, it means that the game has not ended
 int isVictory(char winnerSymbol)
 {
-    for(int i = 0; i < 8; i++)
+    int i, j;
+
+    for(i = 0; i < 8; i++)
     {
-        for(int j = 0; j < 8; j++)
+        for(j = 0; j < 8; j++)
         {
             if(board[i][j] != winnerSymbol && board[i][j] != ' ')
                 return 0;
