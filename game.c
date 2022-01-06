@@ -10,21 +10,35 @@
 /* 
 - Positions in board to understand the preprocessors
 
-    |SECOND_UPPR_LEFT|               |   |                |SECOND_UPPR_RIGHT|
-    |                |FIRST_UPPR_LEFT|   |FIRST_UPPR_RIGHT|                 |
-    |                |               |pos|                |                 |
-    |                |FIRST_LOWR_LEFT|   |FIRST_LOWR_RIGHT|                 |
-    |SECOND_LOWR_LEFT|               |   |                |SECOND_LOWR_RIGHT|
-*/
-#define FIRST_UPPR_RIGHT(pos) (board[pos[1] + 1][pos[0] + 1])
-#define SECOND_UPPR_RIGHT(pos) (board[pos[1] + 2][pos[0] + 2])
-#define FIRST_UPPR_LEFT(pos) (board[pos[1] + 1][pos[0] - 1])
-#define SECOND_UPPR_LEFT(pos) (board[pos[1] + 2][pos[0] - 2])
+    |UPR_2ND_LT|          |   |          |UPR_2ND_RT|
+    |          |UPR_1ST_LT|   |UPR_1ST_RT|          |
+    |          |          |pos|          |          |
+    |          |LWR_1ST_LT|   |LWR_1ST_RT|          |
+    |LWR_2ND_LT|          |   |          |LWR_2ND_RT|
 
-#define FIRST_LOWR_RIGHT(pos) (board[pos[1] - 1][pos[0] + 1])
-#define SECOND_LOWR_RIGHT(pos) (board[pos[1] - 2][pos[0] + 2])
-#define FIRST_LOWR_LEFT(pos) (board[pos[1] - 1][pos[0] - 1])
-#define SECOND_LOWR_LEFT(pos) (board[pos[1] - 2][pos[0] - 2])
+ -Returns a value in board based in a position
+*/
+
+#define UPR_1ST_RT_VAL(pos) (board[pos[1] + 1][pos[0] + 1])
+#define UPR_2ND_RT_VAL(pos) (board[pos[1] + 2][pos[0] + 2])
+#define UPR_1ST_LT_VAL(pos) (board[pos[1] + 1][pos[0] - 1])
+#define UPR_2ND_LT_VAL(pos) (board[pos[1] + 2][pos[0] - 2])
+
+#define LWR_1ST_RT_VAL(pos) (board[pos[1] - 1][pos[0] + 1])
+#define LWR_2ND_RT_VAL(pos) (board[pos[1] - 2][pos[0] + 2])
+#define LWR_1ST_LT_VAL(pos) (board[pos[1] - 1][pos[0] - 1])
+#define LWR_2ND_LT_VAL(pos) (board[pos[1] - 2][pos[0] - 2])
+
+//returns if the pos is in that space in board, based in other pos
+#define IS_IN_UPR_1ST_RT(pos, pos_cmp) ((pos_cmp[1] == pos[1] + 1) && (pos_cmp[0] == pos[0] + 1))
+#define IS_IN_UPR_2ND_RT(pos, pos_cmp) ((pos_cmp[1] == pos[1] + 2) && (pos_cmp[0] == pos[0] + 2))
+#define IS_IN_UPR_1ST_LT(pos, pos_cmp) ((pos_cmp[1] == pos[1] + 1) && (pos_cmp[0] == pos[0] - 1))
+#define IS_IN_UPR_2ND_LT(pos, pos_cmp) ((pos_cmp[1] == pos[1] + 2) && (pos_cmp[0] == pos[0] - 2))
+
+#define IS_IN_LWR_1ST_RT(pos, pos_cmp) ((pos_cmp[1] == pos[1] - 1) && (pos_cmp[0] == pos[0] + 1))
+#define IS_IN_LWR_2ND_RT(pos, pos_cmp) ((pos_cmp[1] == pos[1] - 2) && (pos_cmp[0] == pos[0] + 2))
+#define IS_IN_LWR_1ST_LT(pos, pos_cmp) ((pos_cmp[1] == pos[1] - 1) && (pos_cmp[0] == pos[0] - 1))
+#define IS_IN_LWR_2ND_LT(pos, pos_cmp) ((pos_cmp[1] == pos[1] - 2) && (pos_cmp[0] == pos[0] - 2))
 
 /*
     WALL
@@ -133,7 +147,7 @@ void playerVs_player(void)
             printsBoard();
             
             printf("\n\nPlayer %c", playerTurn_symb);
-            printf("\n\nMove your Selected Piece: ");
+            printf("\nMove your Selected Piece: ");
             fgets(posTo_move, 1024, stdin);
 
             if(isA_validMove(pieceIn_board, posTo_move, playerTurn_symb) != 0)
@@ -213,16 +227,16 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
         playerSymbol == PLAYER1 && 
 
         //if it is not blocked by a board wall or a piece(right)
-        ((FIRST_UPPR_RIGHT(posIn_board) == ' ' && IS_IN_BOARD_RIGHT(posIn_board) == 1) ||
+        ((UPR_1ST_RT_VAL(posIn_board) == ' ' && IS_IN_BOARD_RIGHT(posIn_board)) ||
         
         //if it is not blocked by a board wall or a piece(left)
-        (FIRST_UPPR_LEFT(posIn_board) == ' ' && IS_IN_BOARD_LEFT(posIn_board) == 1) ||
+        (UPR_1ST_LT_VAL(posIn_board) == ' ' && IS_IN_BOARD_LEFT(posIn_board)) ||
 
         //if it cans get an enemies piece to move(right)
-        (FIRST_UPPR_RIGHT(posIn_board) == PLAYER2 && SECOND_UPPR_RIGHT(posIn_board) == ' ') ||
+        (UPR_1ST_RT_VAL(posIn_board) == PLAYER2 && UPR_2ND_RT_VAL(posIn_board) == ' ') ||
         
         //if it cans get an enemies piece to move(left)
-        (FIRST_UPPR_LEFT(posIn_board) == PLAYER2 && SECOND_UPPR_LEFT(posIn_board) == ' '))
+        (UPR_1ST_LT_VAL(posIn_board) == PLAYER2 && UPR_2ND_LT_VAL(posIn_board) == ' '))
     )
         return 1;
 
@@ -230,13 +244,13 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
     (
         playerSymbol == PLAYER2 &&
 
-        ((FIRST_LOWR_RIGHT(posIn_board) == ' ' && IS_IN_BOARD_RIGHT(posIn_board) == 1) ||
+        ((LWR_1ST_RT_VAL(posIn_board) == ' ' && IS_IN_BOARD_RIGHT(posIn_board)) ||
 
-        (FIRST_LOWR_LEFT(posIn_board) == ' ' && IS_IN_BOARD_LEFT(posIn_board) == 1) ||
+        (LWR_1ST_LT_VAL(posIn_board) == ' ' && IS_IN_BOARD_LEFT(posIn_board)) ||
 
-        (FIRST_LOWR_RIGHT(posIn_board) == PLAYER1 && SECOND_LOWR_RIGHT(posIn_board) == ' ') ||
+        (LWR_1ST_RT_VAL(posIn_board) == PLAYER1 && LWR_2ND_RT_VAL(posIn_board) == ' ') ||
 
-        (FIRST_LOWR_LEFT(posIn_board) == PLAYER1 && SECOND_LOWR_LEFT(posIn_board) == ' '))
+        (LWR_1ST_LT_VAL(posIn_board) == PLAYER1 && LWR_2ND_LT_VAL(posIn_board) == ' '))
     )
         return 1;
 
@@ -268,80 +282,60 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
     //if it is not empty 
     if(board[destiPos[1]][destiPos[0]] != ' ')
         return 0;
-    
-    if(playerSymbol == PLAYER1)
-    {
-        if //if the player can get an enemies piece(right)
-        (
-            destiPos[0] == initPos[0] + 2 && destiPos[1] == initPos[1] + 2 && 
-            FIRST_UPPR_RIGHT(initPos) == PLAYER2  
-        )
-        {
-            board[destiPos[1]][destiPos[0]] = PLAYER1;
-            board[initPos[1]][initPos[0]] = ' ';
-            FIRST_UPPR_RIGHT(initPos) = ' ';
-            return 1;
-        }
-        else if //if the player can get enemie's piece(left)
-        (
-            destiPos[0] == initPos[0] - 2 && destiPos[1] == initPos[1] + 2 && 
-            FIRST_UPPR_LEFT(initPos) == PLAYER2
-        )
-        {
-            board[destiPos[1]][destiPos[0]] = PLAYER1;
-            board[initPos[1]][initPos[0]] = ' ';
-            FIRST_UPPR_LEFT(initPos) = ' ';
-            return 1;
-        }
-        else if //just move, left or right
-        (
-            (destiPos[0] == initPos[0] + 1 && destiPos[1] == initPos[1] + 1) ||
-            (destiPos[0] == initPos[0] - 1 && destiPos[1] == initPos[1] + 1) 
-        )
-        {
-            board[destiPos[1]][destiPos[0]] = PLAYER1;
-            board[initPos[1]][initPos[0]] = ' ';
-            return 1;
-        }
-    }
-    else //player2 - same logic
-    {
-        if
-        (
-            destiPos[0] == initPos[0] + 2 && destiPos[1] == initPos[1] - 2 && 
-            FIRST_LOWR_RIGHT(initPos) == PLAYER1  
-        )
-        {
-            board[destiPos[1]][destiPos[0]] = PLAYER2;
-            board[initPos[1]][initPos[0]] = ' ';
-            FIRST_LOWR_RIGHT(initPos) = ' ';
-            return 1;
-        }
-        else if
-        (
-            destiPos[0] == initPos[0] - 2 && destiPos[1] == initPos[1] - 2 && 
-            FIRST_LOWR_LEFT(initPos) == PLAYER1
-        )
-        {
-            board[destiPos[1]][destiPos[0]] = PLAYER2;
-            board[initPos[1]][initPos[0]] = ' ';
-            FIRST_LOWR_LEFT(initPos) = ' ';
-            return 1;
-        }
-        else if
-        (
-            (destiPos[0] == initPos[0] + 1 && destiPos[1] == initPos[1] - 1) ||
-            (destiPos[0] == initPos[0] - 1 && destiPos[1] == initPos[1] - 1) 
-        )
-        {
-            board[destiPos[1]][destiPos[0]] = PLAYER2;
-            board[initPos[1]][initPos[0]] = ' ';
-            return 1;
-        }
-    }
 
-    //if any case matches, it means that it is not a valid move
-    return 0;
+    switch(playerSymbol)
+    {
+        case PLAYER1:
+
+            //if the player can get an enemies piece(right)
+            if(IS_IN_UPR_2ND_RT(initPos, destiPos) && UPR_1ST_RT_VAL(initPos) == PLAYER2)
+            {
+                board[destiPos[1]][destiPos[0]] = PLAYER1;
+                board[initPos[1]][initPos[0]] = ' ';
+                UPR_1ST_RT_VAL(initPos) = ' ';
+                return 1;
+            } 
+            //if the player can get enemie's piece(left)
+            else if(IS_IN_UPR_2ND_LT(initPos, destiPos) && UPR_1ST_LT_VAL(initPos) == PLAYER2)
+            {
+                board[destiPos[1]][destiPos[0]] = PLAYER1;
+                board[initPos[1]][initPos[0]] = ' ';
+                UPR_1ST_LT_VAL(initPos) = ' ';
+                return 1;
+            }
+            //just move, left or right
+            else if(IS_IN_UPR_1ST_RT(initPos, destiPos) || IS_IN_UPR_1ST_LT(initPos, destiPos))
+            {
+                board[destiPos[1]][destiPos[0]] = PLAYER1;
+                board[initPos[1]][initPos[0]] = ' ';
+                return 1;
+            }
+            return 0; //if any case matches, it means that it is not a valid move
+
+        case PLAYER2: //same logic
+
+            if(IS_IN_LWR_2ND_RT(initPos, destiPos) && LWR_1ST_RT_VAL(initPos) == PLAYER1)
+            {
+                board[destiPos[1]][destiPos[0]] = PLAYER2;
+                board[initPos[1]][initPos[0]] = ' ';
+                LWR_1ST_RT_VAL(initPos) = ' ';
+                return 1;
+            }
+            else if(IS_IN_LWR_2ND_LT(initPos, destiPos) && LWR_1ST_LT_VAL(initPos) == PLAYER1)
+            {
+                board[destiPos[1]][destiPos[0]] = PLAYER2;
+                board[initPos[1]][initPos[0]] = ' ';
+                LWR_1ST_LT_VAL(initPos) = ' ';
+                return 1;
+            }
+            else if(IS_IN_LWR_1ST_RT(initPos, destiPos) || IS_IN_LWR_1ST_LT(initPos, destiPos))
+            {
+                board[destiPos[1]][destiPos[0]] = PLAYER2;
+                board[initPos[1]][initPos[0]] = ' ';
+                return 1;
+            }
+            return 0;
+    }
 }
 
 //Checks if the game has ended
