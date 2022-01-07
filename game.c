@@ -9,28 +9,6 @@
 #define PLAYER2_KING 'O'
 #define ISBLACK(i, j) ((i % 2 == 0 && j % 2 == 0) || (i % 2 != 0 && j % 2 != 0))
 
-/* 
-- Positions in board to understand the preprocessors
-
-    |UPR_2ND_LT|          |   |          |UPR_2ND_RT|
-    |          |UPR_1ST_LT|   |UPR_1ST_RT|          |
-    |          |          |pos|          |          |
-    |          |LWR_1ST_LT|   |LWR_1ST_RT|          |
-    |LWR_2ND_LT|          |   |          |LWR_2ND_RT|
-
- -Returns a value in board based in a position
-*/
-
-#define UPR_1ST_RT_VAL(pos) (board[pos[1] + 1][pos[0] + 1])
-#define UPR_2ND_RT_VAL(pos) (board[pos[1] + 2][pos[0] + 2])
-#define UPR_1ST_LT_VAL(pos) (board[pos[1] + 1][pos[0] - 1])
-#define UPR_2ND_LT_VAL(pos) (board[pos[1] + 2][pos[0] - 2])
-
-#define LWR_1ST_RT_VAL(pos) (board[pos[1] - 1][pos[0] + 1])
-#define LWR_2ND_RT_VAL(pos) (board[pos[1] - 2][pos[0] + 2])
-#define LWR_1ST_LT_VAL(pos) (board[pos[1] - 1][pos[0] - 1])
-#define LWR_2ND_LT_VAL(pos) (board[pos[1] - 2][pos[0] - 2])
-
 /*
     WALL
      |
@@ -202,23 +180,24 @@ void printsBoard(void)
 //Checks if it's a valid player piece
 int isA_validPiece(char pieceIn_board[], char playerSymbol)
 {
-    int rowCounter = 0, colCounter = 0;
-    char posIn_board[3] = {'\0'};
-    char upr_1st = '\0';
+    int diagonalCount = 1,
+    rowIncre = 0, colIncre = 0;
+
+    char pos[3] = {'\0'};
     
     if(isA_validBoard_space(pieceIn_board) == 0) return 0;
     
     //converts to matriz form, that is
     //A3 -> (2,0)
-    posIn_board[0] = pieceIn_board[0] - 65;
-    posIn_board[1] = pieceIn_board[1] - '0' - 1;
+    pos[0] = pieceIn_board[0] - 65;
+    pos[1] = pieceIn_board[1] - '0' - 1;
 
     if(playerSymbol == PLAYER1_MEN)
     {
         if
         (
-            board[posIn_board[1]][posIn_board[0]] != PLAYER1_MEN &&
-            board[posIn_board[1]][posIn_board[0]] != PLAYER1_KING
+            board[pos[1]][pos[0]] != PLAYER1_MEN &&
+            board[pos[1]][pos[0]] != PLAYER1_KING
         )
             return 0;
     }
@@ -226,158 +205,123 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
     {
         if
         (
-            board[posIn_board[1]][posIn_board[0]] != PLAYER2_MEN &&
-            board[posIn_board[1]][posIn_board[0]] != PLAYER2_KING
+            board[pos[1]][pos[0]] != PLAYER2_MEN &&
+            board[pos[1]][pos[0]] != PLAYER2_KING
         )
             return 0;
     }
-    
-    //checks if the piece is blocked
-    switch(board[posIn_board[1]][posIn_board[0]])
+
+    //checks if the piece is blocked in four diagonals
+    for(diagonalCount = 1; diagonalCount < 5; diagonalCount++)
     {
-        case PLAYER1_MEN:
+        switch(diagonalCount)
+        {
+            case 1:
+                rowIncre = 1, colIncre = 1; //checks rt upper diagonal
+                break;
+            case 2:
+                rowIncre = 1, colIncre = -1; //lt upper diagonal
+                break;
+            case 3:
+                rowIncre = -1, colIncre = 1; //rt lower
+                break;
+            case 4:
+                rowIncre = -1, colIncre = -1; //lt lower
+                break;
+        }
 
-            if 
-            (
-                //if it is not blocked by a board wall or a piece(right)
-                (UPR_1ST_RT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] + 1, posIn_board[0] + 1)) ||
+        switch(board[pos[1]][pos[0]])
+        {
+            case PLAYER1_MEN:
+
+                if //if the piece can move one house forwards
+                (
+                    rowIncre > 0 && //p1 can't move backwards in board
+                    board[pos[1] + rowIncre][pos[0] + colIncre] == ' ' &&
+                    IS_IN_BOARD((pos[1] + rowIncre), (pos[0] + colIncre))
+                )
+                    return 1;
+                else if //if the piece can capture an enemies piece
+                (
+                    (board[pos[1] + rowIncre][pos[0] + colIncre] == PLAYER2_MEN ||
+                    board[pos[1] + rowIncre][pos[0] + colIncre] == PLAYER2_KING) && 
+                    board[pos[1] + 2 * rowIncre][pos[0] + 2 * colIncre] == ' ' &&
+                    IS_IN_BOARD((pos[1] + 2 * rowIncre), (pos[0] + 2 * colIncre))
+                )
+                    return 1;
+
+                break; //exit switch and restarts with other increment
+
+            case PLAYER2_MEN: //same logic
+
+                if 
+                (
+                    rowIncre < 0 &&
+                    board[pos[1] + rowIncre][pos[0] + colIncre] == ' ' &&
+                    IS_IN_BOARD((pos[1] + rowIncre), (pos[0] + colIncre))
+                )
+                    return 1;
+                else if
+                (
+                    (board[pos[1] + rowIncre][pos[0] + colIncre] == PLAYER1_MEN ||
+                    board[pos[1] + rowIncre][pos[0] + colIncre] == PLAYER1_KING) && 
+                    board[pos[1] + 2 * rowIncre][pos[0] + 2 * colIncre] == ' ' &&
+                    IS_IN_BOARD((pos[1] + 2 * rowIncre), (pos[0] + 2 * colIncre))
+                )
+                    return 1;
                 
-                //if it is not blocked by a board wall or a piece(left)
-                (UPR_1ST_LT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] + 1, posIn_board[0] - 1)) ||
+                break;
 
-                //if it cans get an enemies piece to move(right)
-                ((UPR_1ST_RT_VAL(posIn_board) == PLAYER2_MEN ||
-                UPR_1ST_RT_VAL(posIn_board) == PLAYER2_KING) && 
-                UPR_2ND_RT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] + 2, posIn_board[0] + 2)) ||
+            case PLAYER1_KING:
+
+                if //kings don't have limitations of which diagonal can move
+                (
+                    board[pos[1] + rowIncre][pos[0] + colIncre] == ' ' &&
+                    IS_IN_BOARD((pos[1] + rowIncre), (pos[0] + colIncre))
+                )
+                    return 1;
+                else if
+                (
+                    (board[pos[1] + rowIncre][pos[0] + colIncre] == PLAYER2_MEN ||
+                    board[pos[1] + rowIncre][pos[0] + colIncre] == PLAYER2_KING) && 
+                    board[pos[1] + 2 * rowIncre][pos[0] + 2 * colIncre] == ' ' &&
+                    IS_IN_BOARD((pos[1] + 2 * rowIncre), (pos[0] + 2 * colIncre))
+                )
+                    return 1;
                 
-                //if it cans get an enemies piece to move(left)
-                ((UPR_1ST_LT_VAL(posIn_board) == PLAYER2_MEN ||
-                UPR_1ST_LT_VAL(posIn_board) == PLAYER2_KING) &&
-                UPR_2ND_LT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] + 2, posIn_board[0] - 2))
-            )
-                return 1;
-            
-            return 0; //if any case matches, it means that it is not a valid piece
-        
-        case PLAYER2_MEN: //same logic, for player2
+                break;
 
-            if 
-            (
-                (LWR_1ST_RT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] - 1, posIn_board[0] + 1)) ||
+            case PLAYER2_KING:
 
-                (LWR_1ST_LT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] - 1, posIn_board[0] - 1)) ||
+                if
+                (
+                    board[pos[1] + rowIncre][pos[0] + colIncre] == ' ' &&
+                    IS_IN_BOARD((pos[1] + rowIncre), (pos[0] + colIncre))
+                )
+                    return 1;
+                else if
+                (
+                    (board[pos[1] + rowIncre][pos[0] + colIncre] == PLAYER1_MEN ||
+                    board[pos[1] + rowIncre][pos[0] + colIncre] == PLAYER1_KING) && 
+                    board[pos[1] + 2 * rowIncre][pos[0] + 2 * colIncre] == ' ' &&
+                    IS_IN_BOARD((pos[1] + 2 * rowIncre), (pos[0] + 2 * colIncre))
+                )
+                    return 1;
 
-                ((LWR_1ST_RT_VAL(posIn_board) == PLAYER1_MEN ||
-                LWR_1ST_RT_VAL(posIn_board) == PLAYER1_KING) && 
-                LWR_2ND_RT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] - 2, posIn_board[0] + 2)) ||
-
-                ((LWR_1ST_LT_VAL(posIn_board) == PLAYER1_MEN ||
-                LWR_1ST_LT_VAL(posIn_board) == PLAYER1_KING) && 
-                LWR_2ND_LT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] - 2, posIn_board[0] - 2))
-            )
-                return 1;
-
-            return 0;
-        
-        case PLAYER1_KING:
-
-            if 
-            (
-                //upper
-                (UPR_1ST_RT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] + 1, posIn_board[0] + 1)) ||
-                
-                (UPR_1ST_LT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] + 1, posIn_board[0] - 1)) ||
-
-                ((UPR_1ST_RT_VAL(posIn_board) == PLAYER2_MEN ||
-                UPR_1ST_RT_VAL(posIn_board) == PLAYER2_KING) && 
-                UPR_2ND_RT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] + 2, posIn_board[0] + 2)) ||
-                
-                ((UPR_1ST_LT_VAL(posIn_board) == PLAYER2_MEN ||
-                UPR_1ST_LT_VAL(posIn_board) == PLAYER2_KING) &&
-                UPR_2ND_LT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] + 2, posIn_board[0] - 2)) ||
-
-                //lower
-                (LWR_1ST_RT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] - 1, posIn_board[0] + 1)) ||
-
-                (LWR_1ST_LT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] - 1, posIn_board[0] - 1)) ||
-
-                ((LWR_1ST_RT_VAL(posIn_board) == PLAYER2_MEN ||
-                LWR_1ST_RT_VAL(posIn_board) == PLAYER2_KING) && 
-                LWR_2ND_RT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] - 2, posIn_board[0] + 2)) ||
-
-                ((LWR_1ST_LT_VAL(posIn_board) == PLAYER2_MEN ||
-                LWR_1ST_LT_VAL(posIn_board) == PLAYER2_KING) && 
-                LWR_2ND_LT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] - 2, posIn_board[0] - 2))
-            )
-                return 1;
-            
-            return 0; //if any case matches, it means that it is not a valid piece
-            
-        case PLAYER2_KING:
-
-            if 
-            (
-                //upper
-                (UPR_1ST_RT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] + 1, posIn_board[0] + 1)) ||
-                
-                (UPR_1ST_LT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] + 1, posIn_board[0] - 1)) ||
-
-                ((UPR_1ST_RT_VAL(posIn_board) == PLAYER1_MEN ||
-                UPR_1ST_RT_VAL(posIn_board) == PLAYER1_KING) && 
-                UPR_2ND_RT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] + 2, posIn_board[0] + 2)) ||
-                
-                ((UPR_1ST_LT_VAL(posIn_board) == PLAYER1_MEN ||
-                UPR_1ST_LT_VAL(posIn_board) == PLAYER1_KING) &&
-                UPR_2ND_LT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] + 2, posIn_board[0] - 2)) ||
-
-                //lower
-                (LWR_1ST_RT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] - 1, posIn_board[0] + 1)) ||
-
-                (LWR_1ST_LT_VAL(posIn_board) == ' ' && 
-                IS_IN_BOARD(posIn_board[1] - 1, posIn_board[0] - 1)) ||
-
-                ((LWR_1ST_RT_VAL(posIn_board) == PLAYER1_MEN ||
-                LWR_1ST_RT_VAL(posIn_board) == PLAYER1_KING) && 
-                LWR_2ND_RT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] - 2, posIn_board[0] + 2)) ||
-
-                ((LWR_1ST_LT_VAL(posIn_board) == PLAYER1_MEN ||
-                LWR_1ST_LT_VAL(posIn_board) == PLAYER1_KING) && 
-                LWR_2ND_LT_VAL(posIn_board) == ' ' &&
-                IS_IN_BOARD(posIn_board[1] - 2, posIn_board[0] - 2))
-            )
-                return 1;
-
-            return 0;
+                break;
+        }
     }
+
+    //if any case matches it means that the piece is blocked and can't be moved
+    //therefore, it's not a valid piece
+    return 0;
 }
 
 //Checks if the piece can moves to that space in board
 //if it can, moves the piece
 int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
 {
-    int rowCounter = 0, colCounter = 0, rowIncrement = 0, colIncrement = 0;
+    int rowCounter = 0, colCounter = 0, rowIncre = 0, colIncre = 0;
 
     char 
     initPos[3] = {'\0'}, 
@@ -403,19 +347,19 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
     //checks which diagonal is the destination
     if(destiPos[1] > initPos[1] && destiPos[0] > initPos[0]) //rt upr diagonal
     {
-        rowIncrement = 1, colIncrement = 1;
+        rowIncre = 1, colIncre = 1;
     }
     else if(destiPos[1] > initPos[1] && destiPos[0] < initPos[0]) //lt upr diagonal
     {
-        rowIncrement = 1, colIncrement = -1;
+        rowIncre = 1, colIncre = -1;
     }
     else if(destiPos[1] < initPos[1] && destiPos[0] > initPos[0]) //rt lwr diagonal
     {
-        rowIncrement = -1, colIncrement = 1;
+        rowIncre = -1, colIncre = 1;
     }
     else if(destiPos[1] < initPos[1] && destiPos[0] < initPos[0]) //lt lwr diagonal
     {
-        rowIncrement = -1, colIncrement = -1;
+        rowIncre = -1, colIncre = -1;
     }
     else 
         return 0; //it means it is not a diagonal. Then it is not a possible move
@@ -427,9 +371,9 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
 
             if //if it wants to move just one house forwards
             (
-                rowIncrement > 0 &&
-                initPos[1] + rowIncrement == destiPos[1] && 
-                initPos[0] + colIncrement == destiPos[0]
+                rowIncre > 0 &&
+                initPos[1] + rowIncre == destiPos[1] && 
+                initPos[0] + colIncre == destiPos[0]
             )
             {
                 board[initPos[1]][initPos[0]] = ' ';
@@ -438,14 +382,14 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
             }
             else if //if it wants to caputure an enemies piece(forwards or backwards)
             (
-                (board[initPos[1] + rowIncrement][initPos[0] + colIncrement] == PLAYER2_MEN ||
-                board[initPos[1] + rowIncrement][initPos[0] + colIncrement] == PLAYER2_KING) &&
-                initPos[1] + 2 * rowIncrement == destiPos[1] && 
-                initPos[0] + 2 * colIncrement == destiPos[0]
+                (board[initPos[1] + rowIncre][initPos[0] + colIncre] == PLAYER2_MEN ||
+                board[initPos[1] + rowIncre][initPos[0] + colIncre] == PLAYER2_KING) &&
+                initPos[1] + 2 * rowIncre == destiPos[1] && 
+                initPos[0] + 2 * colIncre == destiPos[0]
             )
             {
                 board[initPos[1]][initPos[0]] = ' ';
-                board[initPos[1] + rowIncrement][initPos[0] + colIncrement] = ' ';
+                board[initPos[1] + rowIncre][initPos[0] + colIncre] = ' ';
                 board[destiPos[1]][destiPos[0]] = PLAYER1_MEN;
                 return 1;
             }
@@ -456,9 +400,9 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
 
             if
             (
-                rowIncrement < 0 &&
-                initPos[1] + rowIncrement == destiPos[1] && 
-                initPos[0] + colIncrement == destiPos[0]
+                rowIncre < 0 &&
+                initPos[1] + rowIncre == destiPos[1] && 
+                initPos[0] + colIncre == destiPos[0]
             )
             {
                 board[initPos[1]][initPos[0]] = ' ';
@@ -467,14 +411,14 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
             }
             else if
             (
-                (board[initPos[1] + rowIncrement][initPos[0] + colIncrement] == PLAYER1_MEN ||
-                board[initPos[1] + rowIncrement][initPos[0] + colIncrement] == PLAYER1_KING) &&
-                initPos[1] + 2 * rowIncrement == destiPos[1] && 
-                initPos[0] + 2 * colIncrement == destiPos[0]
+                (board[initPos[1] + rowIncre][initPos[0] + colIncre] == PLAYER1_MEN ||
+                board[initPos[1] + rowIncre][initPos[0] + colIncre] == PLAYER1_KING) &&
+                initPos[1] + 2 * rowIncre == destiPos[1] && 
+                initPos[0] + 2 * colIncre == destiPos[0]
             )
             {
                 board[initPos[1]][initPos[0]] = ' ';
-                board[initPos[1] + rowIncrement][initPos[0] + colIncrement] = ' ';
+                board[initPos[1] + rowIncre][initPos[0] + colIncre] = ' ';
                 board[destiPos[1]][destiPos[0]] = PLAYER2_MEN;
                 return 1;
             }
@@ -485,9 +429,10 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
 
             //goes through the diagonal to check if the destination is valid
             rowCounter = initPos[1], colCounter = initPos[0];
+
             while(1) 
             {
-                rowCounter+=rowIncrement, colCounter+=colIncrement;
+                rowCounter+=rowIncre, colCounter+=colIncre;
                 //if it is an empty space, without a piece blocking it
                 if(rowCounter == destiPos[1] && colCounter == destiPos[0]) 
                 {
@@ -499,8 +444,8 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
                 (
                     (board[rowCounter][colCounter] == PLAYER2_MEN || 
                     board[rowCounter][colCounter] == PLAYER2_KING) &&
-                    (destiPos[1] == rowCounter + rowIncrement && 
-                    destiPos[0] == colCounter + colIncrement)
+                    (destiPos[1] == rowCounter + rowIncre && 
+                    destiPos[0] == colCounter + colIncre)
                 )
                 {
                     board[initPos[1]][initPos[0]] = ' ';
@@ -515,9 +460,10 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
         case PLAYER2_KING: //same logic
 
             rowCounter = initPos[1], colCounter = initPos[0];
+
             while(1) 
             {
-                rowCounter+=rowIncrement, colCounter+=colIncrement;
+                rowCounter+=rowIncre, colCounter+=colIncre;
 
                 if(rowCounter == destiPos[1] && colCounter == destiPos[0]) 
                 {
@@ -529,8 +475,8 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
                 (
                     (board[rowCounter][colCounter] == PLAYER1_MEN || 
                     board[rowCounter][colCounter] == PLAYER1_KING) &&
-                    (destiPos[1] == rowCounter + rowIncrement && 
-                    destiPos[0] == colCounter + colIncrement) 
+                    (destiPos[1] == rowCounter + rowIncre && 
+                    destiPos[0] == colCounter + colIncre) 
                 )
                 {
                     board[initPos[1]][initPos[0]] = ' ';
