@@ -23,19 +23,21 @@
 
 int menu(void);
 void playerVs_player(void);
+void rules(void);
 
 void resetBoard(void);
 void printsBoard(void);
 int isA_validPiece(char pieceIn_board[], char playerSymbol); 
-int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol);
+int isA_validMove(char posIn_board[], char posTo_move[]);
 void isA_validKing(char pos[], char playerSymbol);
 int isVictory(void);
+int isTie(void);
 
 int isA_validBoard_space(char input[]);
 
 char board[8][8] = {'\0'};
 
-enum menuOptions {Pvp = 1, Exitprogram};
+enum menuOptions {Pvp = 1, GameRules, Exitprogram};
 
 int main()
 {
@@ -47,6 +49,10 @@ int main()
       {
         case Pvp:
             playerVs_player();
+            break;
+        
+        case GameRules:
+            rules();
             break;
         
         case Exitprogram:
@@ -69,7 +75,8 @@ int menu(void)
     system("cls"); //cleans the screen
     printf("\n\t\t\t\t  CHECKERS GAME");
     printf("\n\n\t\t\t\t[1] - Play (Player vs Plaver)");
-    printf("\n\t\t\t\t[2] - Exit");
+    printf("\n\t\t\t\t[2] - Game Rules");
+    printf("\n\t\t\t\t[3] - Exit");
 
     printf("\n\nType the Operation: ");
     fgets(input, 1024, stdin);
@@ -118,7 +125,7 @@ void playerVs_player(void)
             printf("\nMove your Selected Piece: ");
             fgets(posTo_move, 1024, stdin);
 
-            if(isA_validMove(pieceIn_board, posTo_move, playerTurn_symb) != 0)
+            if(isA_validMove(pieceIn_board, posTo_move) != 0)
             {
                 isA_validKing(posTo_move, playerTurn_symb);
                 break; 
@@ -128,12 +135,40 @@ void playerVs_player(void)
             getch();   
         }
     }
-    while(isVictory() == 0);
+    while(isVictory() == 0 || isTie() == 0);
 
     system("cls");
     printsBoard();
     printf("\n\nEND GAME!");
-    printf("\nPLAYER '%c' WINS!", playerTurn_symb);
+    (isTie()) ? printf("\nIt's a TIE!") : printf("\nPLAYER '%c' WINS!", playerTurn_symb);
+    printf("\n\nThank you for Play :) - Paulo");
+}
+
+void rules(void)
+{
+    system("cls");
+    printf("\t\t\t\t\t     RULES");
+    printf("\n\t\t\t-----------------------------------------------------");
+
+    printf("\n\n\t    - Checkers is a 1vs1 Game played in a Board(8x8), with 24 pieces on it. ");
+    printf("\n\t    - The Main objective of Checkers is to Capture all Enemies Pieces.");
+
+    printf("\n\n\t\t\t\t '%c' - Player 1 Men", PLAYER1_MEN);
+    printf("\n\t\t\t\t '%c' - Player 1 King", PLAYER1_KING);
+    printf("\n\t\t\t\t '%c' - Player 2 Men", PLAYER2_MEN);
+    printf("\n\t\t\t\t '%c' - Player 2 King", PLAYER2_KING);
+
+    printf("\n\nIn this Program: ");
+    printf("\n\n1 - 'X' Men can just move 1 Board house Forwards and 'O' Backwards - (Bottom-Up).");
+    printf("\n2 - Men can move 2 houses if are capturing an Enemies Piece.");
+    printf("\n3 - Kings can Move in all diagonals, how many houses it wants.");
+    printf("\n4 - Pieces can Capture Enemies Pieces in its Inverse Moviment Way.");
+    printf("\n5 - It's Optional to Capture an Enemies Piece.");
+    printf("\n6 - The game will automatically end, as a Tie, if:"); 
+    printf("\n-> There are Only Kings and 20 moviments were madee without a Piece getting Capture or");
+    printf("\n-> A Player Pieces are totally Blocked and cannot Move.");
+
+    printf("\n\nBug: A Piece cannot capture more than one Piece at once(Men and Kings).");
 }
 
 //resets the board if the correct pieces
@@ -180,7 +215,7 @@ void printsBoard(void)
 //Checks if it's a valid player piece
 int isA_validPiece(char pieceIn_board[], char playerSymbol)
 {
-    int diagonalCount = 1,
+    int diagonalCount,
     rowIncre = 0, colIncre = 0;
 
     char pos[3] = {'\0'};
@@ -319,7 +354,7 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
 
 //Checks if the piece can moves to that space in board
 //if it can, moves the piece
-int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
+int isA_validMove(char posIn_board[], char posTo_move[])
 {
     int rowCounter = 0, colCounter = 0, rowIncre = 0, colIncre = 0;
 
@@ -528,6 +563,11 @@ int isVictory(void)
     //if it reached this point, it means there is one player without piece
     //therefore, it's victory
     return 1; 
+}
+
+int isTie(void)
+{
+    return 0;
 }
 
 //Checks if the input is like: A3, C5, E7, etc.
