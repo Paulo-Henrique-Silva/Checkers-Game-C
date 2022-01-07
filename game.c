@@ -425,10 +425,9 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
     {
         case PLAYER1_MEN:
 
-            if(rowIncrement < 0) //player 1 can't move backwards
-                return 0;
-            else if //if it wants to move just one house
+            if //if it wants to move just one house forwards
             (
+                rowIncrement > 0 &&
                 initPos[1] + rowIncrement == destiPos[1] && 
                 initPos[0] + colIncrement == destiPos[0]
             )
@@ -437,7 +436,7 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
                 board[destiPos[1]][destiPos[0]] = PLAYER1_MEN;
                 return 1;
             }
-            else if //if it wants to caputure an enemies piece
+            else if //if it wants to caputure an enemies piece(forwards or backwards)
             (
                 (board[initPos[1] + rowIncrement][initPos[0] + colIncrement] == PLAYER2_MEN ||
                 board[initPos[1] + rowIncrement][initPos[0] + colIncrement] == PLAYER2_KING) &&
@@ -451,14 +450,13 @@ int isA_validMove(char posIn_board[], char posTo_move[], char playerSymbol)
                 return 1;
             }
             else 
-                return 0;
+                return 0; //it means it is not a valid move
 
         case PLAYER2_MEN: //same logic
 
-            if(rowIncrement > 0)
-                return 0;
-            else if
+            if
             (
+                rowIncrement < 0 &&
                 initPos[1] + rowIncrement == destiPos[1] && 
                 initPos[0] + colIncrement == destiPos[0]
             )
