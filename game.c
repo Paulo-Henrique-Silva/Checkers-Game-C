@@ -31,9 +31,10 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol);
 int isA_validMove(char posIn_board[], char posTo_move[]);
 void isA_validKing(char pos[], char playerSymbol);
 int isVictory(void);
-int isTie(void);
+int isTie(int *pNumOf_moviments, int numOf_piecesBefore_move, int numOf_piecesAfter_move);
 
 int isA_validBoard_space(char input[]);
+int numOf_pieces(void);
 
 char board[8][8] = {'\0'};
 
@@ -91,6 +92,8 @@ void playerVs_player(void)
     pieceIn_board[1024] = {'\0'},
     posTo_move[1024] = {'\0'};
 
+    int numOf_moviments = 0, lastNum_ofPieces = 0;
+
     resetBoard();
 
     do
@@ -98,6 +101,7 @@ void playerVs_player(void)
         //changes players turns
         //starts with player1
         playerTurn_symb = (playerTurn_symb == PLAYER1_MEN) ? PLAYER2_MEN : PLAYER1_MEN;
+        lastNum_ofPieces = numOf_pieces();
 
         //reads until is a valid player piece
         while(1)
@@ -128,6 +132,7 @@ void playerVs_player(void)
             if(isA_validMove(pieceIn_board, posTo_move) != 0)
             {
                 isA_validKing(posTo_move, playerTurn_symb);
+                numOf_moviments++;
                 break; 
             }
 
@@ -135,13 +140,17 @@ void playerVs_player(void)
             getch();   
         }
     }
-    while(isVictory() == 0 || isTie() == 0);
+    while
+    (
+        isVictory() == 0 && 
+        isTie(&numOf_moviments, lastNum_ofPieces, numOf_pieces()) == 0
+    );
 
     system("cls");
     printsBoard();
-    printf("\n\nEND GAME!");
-    (isTie()) ? printf("\nIt's a TIE!") : printf("\nPLAYER '%c' WINS!", playerTurn_symb);
-    printf("\n\nThank you for Play :) - Paulo");
+    printf("\n\nEND GAME!\a");
+    (isVictory()) ? printf("\nPLAYER '%c' WINS!", playerTurn_symb) : printf("\nIt's a TIE!");
+    printf("\n\nThank you for Playing :) - Paulo");
 }
 
 void rules(void)
@@ -165,7 +174,7 @@ void rules(void)
     printf("\n4 - Pieces can Capture Enemies Pieces in its Inverse Moviment Way.");
     printf("\n5 - It's Optional to Capture an Enemies Piece.");
     printf("\n6 - The game will automatically end, as a Tie, if:"); 
-    printf("\n-> There are Only Kings and 20 moviments were madee without a Piece getting Capture or");
+    printf("\n-> There are Only Kings and 20 moviments were made without a Piece getting Capture or");
     printf("\n-> A Player Pieces are totally Blocked and cannot Move.");
 
     printf("\n\nBug: A Piece cannot capture more than one Piece at once(Men and Kings).");
@@ -352,8 +361,8 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
     return 0;
 }
 
-//Checks if the piece can moves to that space in board
-//if it can, moves the piece
+
+//Checks if the piece can moves to that space in board and moves the piece.
 int isA_validMove(char posIn_board[], char posTo_move[])
 {
     int rowCounter = 0, colCounter = 0, rowIncre = 0, colIncre = 0;
@@ -565,9 +574,49 @@ int isVictory(void)
     return 1; 
 }
 
-int isTie(void)
+//pointer
+
+int isTie(int *pNumOf_moviments, int numOf_piecesBefore_move, int numOf_piecesAfter_move)
 {
-    return 0;
+    int i, j, validPieces_p1 = 0, validPieces_p2 = 0;
+    char boardCod[3] = {'\0'};
+
+    //it means a piece was captured
+    if(numOf_piecesBefore_move != numOf_piecesAfter_move)
+        *pNumOf_moviments = 0;
+
+    for(i = 0; i < 8; i++)
+    {
+        for(j = 0; j < 8; j++)
+        {
+            if(board[i][j] == PLAYER1_MEN || board[i][j] == PLAYER2_MEN)
+                *pNumOf_moviments = 0;
+            
+            if(validPieces_p1 > 0 && validPieces_p2 > 0 && *pNumOf_moviments == 0)
+                return 0;
+        
+            if(validPieces_p1 > 0 && validPieces_p2 > 0)
+                continue;
+
+            boardCod[1] = i + '0' + 1, boardCod[0] = j + 65;
+
+            if
+            (
+                (board[i][j] == PLAYER1_MEN || board[i][j] == PLAYER1_KING) && 
+                isA_validPiece(boardCod, PLAYER1_MEN)
+            )
+                validPieces_p1++;
+            
+            if
+            (
+                (board[i][j] == PLAYER2_MEN || board[i][j] == PLAYER2_KING) && 
+                isA_validPiece(boardCod, PLAYER2_MEN)
+            )
+                validPieces_p2++;
+        }
+    }
+
+    return (*pNumOf_moviments == 20 || validPieces_p1 == 0 || validPieces_p2 == 0) ? 1 : 0;
 }
 
 //Checks if the input is like: A3, C5, E7, etc.
@@ -577,13 +626,29 @@ int isA_validBoard_space(char input[])
     if(strchr(input, '\n') != NULL) input[strlen(input) - 1] = '\0';
     //remove last char \n(if it has it) and put in upper case
 
-    if(strlen(input) != 2) 
+    if
+    (
+        strlen(input) != 2 || (input[0] < 'A' || input[0] > 'H') || 
+        ((input[1] - '0') < 1 || (input[1] - '0') > 8)
+    ) 
         return 0; 
-    else if(input[0] < 'A' || input[0] > 'H') 
-        return 0;
-    else if((input[1] - '0') < 1 || (input[1] - '0') > 8) 
-        return 0;
     else 
         return 1;
     //the " - '0' " converts to an integer
+}
+
+int numOf_pieces(void)
+{
+    int i, j, amount = 0;
+
+    for(i = 0; i < 8; i++)
+    {
+        for(j = 0; j < 8; j++)
+        {
+            if(board[i][j] != ' ')
+                amount++;
+        }
+    }
+
+    return amount;
 }
