@@ -155,17 +155,26 @@ void playerVs_player(void)
 
 void rules(void)
 {
+    int rowCounter = 8, rows, columns;
+
     system("cls");
     printf("\t\t\t\t\t     RULES");
     printf("\n\t\t\t-----------------------------------------------------");
 
     printf("\n\n\t    - Checkers is a 1vs1 Game played in a Board(8x8), with 24 pieces on it. ");
-    printf("\n\t    - The Main objective of Checkers is to Capture all Enemies Pieces.");
+    printf("\n\t    - The Main objective of Checkers is to Capture all Enemies Pieces.\n");
 
-    printf("\n\n\t\t\t\t '%c' - Player 1 Men", PLAYER1_MEN);
-    printf("\n\t\t\t\t '%c' - Player 1 King", PLAYER1_KING);
-    printf("\n\t\t\t\t '%c' - Player 2 Men", PLAYER2_MEN);
-    printf("\n\t\t\t\t '%c' - Player 2 King", PLAYER2_KING);
+    resetBoard();
+    printsBoard();
+
+    printf("\n\n\t\tTo Select and Move a Piece, enter the Column Letter and then the Row Number.");
+    printf("\n\t\tExample: A3, C4, F8, H5, etc.");
+
+    printf("\n\n\t\t\t\t\tPLAYERS CHARACTERES");
+    printf("\n\n\t\t\t\t\t'%c' - Player 1 Men", PLAYER1_MEN);
+    printf("\n\t\t\t\t\t'%c' - Player 1 King", PLAYER1_KING);
+    printf("\n\t\t\t\t\t'%c' - Player 2 Men", PLAYER2_MEN);
+    printf("\n\t\t\t\t\t'%c' - Player 2 King", PLAYER2_KING);
 
     printf("\n\nIn this Program: ");
     printf("\n\n1 - 'X' Men can just move 1 Board house Forwards and 'O' Backwards - (Bottom-Up).");
@@ -180,7 +189,7 @@ void rules(void)
     printf("\n\nBug: A Piece cannot capture more than one Piece at once(Men and Kings).");
 }
 
-//resets the board if the correct pieces
+//Resets the board with the correct pieces
 void resetBoard(void)
 {
     int i, j;
@@ -229,7 +238,8 @@ int isA_validPiece(char pieceIn_board[], char playerSymbol)
 
     char pos[3] = {'\0'};
     
-    if(isA_validBoard_space(pieceIn_board) == 0) return 0;
+    if(isA_validBoard_space(pieceIn_board) == 0) 
+        return 0;
     
     //converts to matriz form, that is
     //A3 -> (2,0)
@@ -574,8 +584,9 @@ int isVictory(void)
     return 1; 
 }
 
-//pointer
-
+//Returns if it is a valid Tie
+// -> There are Only Kings and 20 moviments were made without a Piece getting Capture or
+// ->  A Player Pieces are totally Blocked and cannot Move.
 int isTie(int *pNumOf_moviments, int numOf_piecesBefore_move, int numOf_piecesAfter_move)
 {
     int i, j, validPieces_p1 = 0, validPieces_p2 = 0;
@@ -589,18 +600,22 @@ int isTie(int *pNumOf_moviments, int numOf_piecesBefore_move, int numOf_piecesAf
     {
         for(j = 0; j < 8; j++)
         {
+            //if there is one piece that is not a King
             if(board[i][j] == PLAYER1_MEN || board[i][j] == PLAYER2_MEN)
                 *pNumOf_moviments = 0;
             
+            //if it is not already a tie, there is no need to continue
             if(validPieces_p1 > 0 && validPieces_p2 > 0 && *pNumOf_moviments == 0)
                 return 0;
-        
+            
+            //There is no need to check valid pieces, 
+            //if there is already more than 1 for each player
             if(validPieces_p1 > 0 && validPieces_p2 > 0)
                 continue;
 
             boardCod[1] = i + '0' + 1, boardCod[0] = j + 65;
 
-            if
+            if //checks how many valid pieces p1 has
             (
                 (board[i][j] == PLAYER1_MEN || board[i][j] == PLAYER1_KING) && 
                 isA_validPiece(boardCod, PLAYER1_MEN)
@@ -637,6 +652,7 @@ int isA_validBoard_space(char input[])
     //the " - '0' " converts to an integer
 }
 
+//Returns the number of pieces in board
 int numOf_pieces(void)
 {
     int i, j, amount = 0;
