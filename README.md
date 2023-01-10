@@ -19,4 +19,4 @@ O programa imita um jogo de Damas e contém quase todas as mecânicas do Jogo Re
 
 - O uso do código fonte é totalmente livre.
 - Para jogar, basta clicar no arquivo .exe.
-- Bug: Infelizmente a mecânica de uma peça capturar outras, em cadeia, não funciona. Portanto, uma peça, seja ela Dama ou Peão, só pode capturar uma Peça por vez.  
+- Bug: Infelizmente a mecânica de uma peça capturar outras em cadeia não funciona. Portanto, uma peça, seja ela Dama ou Peão, só pode capturar uma Peça por vez.
