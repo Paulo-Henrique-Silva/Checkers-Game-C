@@ -9,7 +9,7 @@ Um Jogo de Damas feito em Linguagem C.
 
 # Sobre o Projeto
 
-O programa imita um jogo de Damas e contém quase todas as mecânicas do Jogo Real(de acordo com as Regras Brasileiras). Assim como uma peça poder capturar outra, "comer" uma peça para trás, um peão ser promovido para Dama, etc. Uma partida só acabará em:
+O programa imita um jogo de Damas e contém quase todas as mecânicas do Jogo Real (de acordo com as Regras Brasileiras). Assim como uma peça poder capturar outra, "comer" uma peça para trás, um peão ser promovido para Dama etc. Uma partida só acabará em:
 
 **Vitória** - Caso todas as peças de um Jogador forem capturadas.
 
@@ -17,6 +17,5 @@ O programa imita um jogo de Damas e contém quase todas as mecânicas do Jogo Re
 
 # Informações Adicionais
 
-- O uso do código fonte é totalmente livre.
 - Para jogar, basta clicar no arquivo .exe.
 - Bug: Infelizmente a mecânica de uma peça capturar outras em cadeia não funciona. Portanto, uma peça, seja ela Dama ou Peão, só pode capturar uma Peça por vez.
